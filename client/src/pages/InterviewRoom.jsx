@@ -16,6 +16,7 @@ const InterviewRoom = () => {
   const { role } = useParams();
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const streamRef = useRef(null);
 
   const {
     QUESTIONS,
@@ -31,13 +32,31 @@ const InterviewRoom = () => {
     stopRecording,
   } = useRecorder();
 
+  // 🔴 CENTRAL CAMERA STOP FUNCTION
+  const stopCamera = () => {
+    stopRecording();
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+  };
+
   useEffect(() => {
+    let mounted = true;
+
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
-      .then((s) => {
-        videoRef.current.srcObject = s;
-        setTimeout(startRecording, 2000);
-      });
+      .then((stream) => {
+        if (!mounted) return;
+        streamRef.current = stream;
+        videoRef.current.srcObject = stream;
+        setTimeout(startRecording, 1500);
+      })
+      .catch(console.error);
+
+    // 🔴 cleanup on unmount
+    return () => {
+      mounted = false;
+      stopCamera();
+    };
   }, []);
 
   const handleNext = () => {
@@ -45,16 +64,28 @@ const InterviewRoom = () => {
     const score = analyzeAnswer(transcript);
     nextQuestion(transcript, score);
 
-    if (finished) navigate("/feedback");
-    else startRecording();
+    if (finished) {
+      stopCamera();          // 🔴 STOP CAMERA
+      navigate("/feedback");
+    } else {
+      startRecording();
+    }
   };
+
+  if (!QUESTIONS?.length) return null;
 
   return (
     <div className="interview-page">
       <div className="glass-card">
         <h1>{role.toUpperCase()} Interview</h1>
 
-        <video ref={videoRef} autoPlay muted className="camera-box" />
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="camera-box"
+        />
 
         <ProgressBar
           current={currentIndex + 1}
