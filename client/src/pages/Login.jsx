@@ -1,32 +1,43 @@
 import { useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import Loader from "../components/common/Loader";
 import "../styles/auth.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = (e) => {
     e.preventDefault();
-    localStorage.setItem("isAuthenticated", "true");
-    navigate("/dashboard");
+    setLoading(true);
+
+    setTimeout(() => {
+      localStorage.setItem("isAuthenticated", "true");
+      navigate("/dashboard");
+    }, 1200);
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Welcome Back 👋</h2>
-        <p>Login to continue your AI interview journey</p>
+    <>
+      {loading && <Loader text="Logging you in..." />}
 
-        <form onSubmit={handleLogin}>
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Password" required />
-          <button className="auth-btn">Login</button>
-        </form>
+      <div className="auth-container">
+        <div className="auth-card">
+          <h2>Welcome Back 👋</h2>
+          <p>Login to continue your AI interview journey</p>
 
-        <span className="auth-footer">
-          Don’t have an account? <Link to="/signup">Sign Up</Link>
-        </span>
+          <form onSubmit={handleLogin}>
+            <input type="email" placeholder="Email" required />
+            <input type="password" placeholder="Password" required />
+            <button className="auth-btn">Login</button>
+          </form>
+
+          <span className="auth-footer">
+            Don’t have an account? <Link to="/signup">Sign Up</Link>
+          </span>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

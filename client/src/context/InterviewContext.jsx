@@ -13,7 +13,6 @@ export const InterviewProvider = ({ children }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [scores, setScores] = useState([]);
-  const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
 
   const nextQuestion = (answer, score) => {
@@ -27,15 +26,22 @@ export const InterviewProvider = ({ children }) => {
     }
   };
 
+  // 🔴 RESET FUNCTION (IMPORTANT)
+  const resetInterview = () => {
+    setCurrentIndex(0);
+    setAnswers([]);
+    setScores([]);
+    setFinished(false);
+  };
+
   return (
     <InterviewContext.Provider
       value={{
         QUESTIONS,
         currentIndex,
-        started,
-        setStarted,
         finished,
         nextQuestion,
+        resetInterview, // ✅ expose reset
         answers,
         scores,
       }}

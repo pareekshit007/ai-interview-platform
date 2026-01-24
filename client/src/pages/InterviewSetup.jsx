@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useInterview } from "../context/InterviewContext";
 import "../styles/interviewSetup.css";
 
 const InterviewSetup = () => {
   const { role } = useParams();
   const navigate = useNavigate();
+  const { resetInterview } = useInterview(); // 🔴 ADD THIS
 
   const [camera, setCamera] = useState(false);
   const [mic, setMic] = useState(false);
   const [error, setError] = useState("");
 
-  // Store media streams
   const cameraStreamRef = useRef(null);
   const micStreamRef = useRef(null);
 
@@ -54,7 +55,7 @@ const InterviewSetup = () => {
     }
   };
 
-  // Cleanup when leaving page
+  // Cleanup on leave
   useEffect(() => {
     return () => {
       cameraStreamRef.current?.getTracks().forEach(track => track.stop());
@@ -70,20 +71,12 @@ const InterviewSetup = () => {
 
         <div className="checklist">
           <label>
-            <input
-              type="checkbox"
-              checked={camera}
-              onChange={checkCamera}
-            />
+            <input type="checkbox" checked={camera} onChange={checkCamera} />
             Camera Working
           </label>
 
           <label>
-            <input
-              type="checkbox"
-              checked={mic}
-              onChange={checkMic}
-            />
+            <input type="checkbox" checked={mic} onChange={checkMic} />
             Microphone Working
           </label>
         </div>
@@ -103,7 +96,10 @@ const InterviewSetup = () => {
         <button
           className={`join-btn ${camera && mic ? "active" : ""}`}
           disabled={!(camera && mic)}
-          onClick={() => navigate(`/interview-room/${role}`)}
+          onClick={() => {
+            resetInterview(); // 🔴 RESET HERE
+            navigate(`/interview-room/${role}`);
+          }}
         >
           Join Interview
         </button>

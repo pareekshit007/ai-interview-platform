@@ -1,45 +1,55 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import Loader from "../components/common/Loader";
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    navigate("/login");
+    setLoading(true);
+
+    setTimeout(() => {
+      localStorage.removeItem("isAuthenticated");
+      navigate("/login");
+    }, 800);
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-hero">
-        <h1>Welcome back 👋</h1>
-        <p>Ready to practice your next AI-powered interview?</p>
+    <>
+      {loading && <Loader text="Logging you out..." />}
 
-        <button
-          onClick={handleLogout}
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            borderRadius: "10px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-      </div>
+      <div className="dashboard-container">
+        <div className="dashboard-hero">
+          <h1>Welcome back 👋</h1>
+          <p>Ready to practice your next AI-powered interview?</p>
 
-      <div className="dashboard-cards">
-        <div className="dashboard-card primary">
-          <h3>Start New Interview</h3>
-          <p>Select interview type and begin practice.</p>
-          <button onClick={() => navigate("/roles")}>
-            Start Interview
+          <button
+            onClick={handleLogout}
+            style={{
+              marginTop: "20px",
+              padding: "10px 20px",
+              borderRadius: "10px",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Logout
           </button>
+        </div>
 
+        <div className="dashboard-cards">
+          <div className="dashboard-card primary">
+            <h3>Start New Interview</h3>
+            <p>Select interview type and begin practice.</p>
+            <button onClick={() => navigate("/roles")}>
+              Start Interview
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

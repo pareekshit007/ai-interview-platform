@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import QuestionCard from "../components/interview/QuestionCard";
@@ -15,14 +15,19 @@ import "../styles/interview.css";
 const InterviewRoom = () => {
   const { role } = useParams();
   const navigate = useNavigate();
+
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  const [cameraOn, setCameraOn] = useState(true);
+  const [micOn, setMicOn] = useState(true);
 
   const {
     QUESTIONS,
     currentIndex,
     nextQuestion,
     finished,
+    resetInterview,
   } = useInterview();
 
   const {
@@ -32,27 +37,59 @@ const InterviewRoom = () => {
     stopRecording,
   } = useRecorder();
 
-  // 🔴 CENTRAL CAMERA STOP FUNCTION
+  // 🔴 Start camera
+  const startCamera = async () => {
+    if (streamRef.current) return;
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+
+    streamRef.current = stream;
+    videoRef.current.srcObject = stream;
+  };
+
+  // 🔴 Stop camera
   const stopCamera = () => {
     stopRecording();
     streamRef.current?.getTracks().forEach(track => track.stop());
     streamRef.current = null;
   };
 
+  // 🎥 Toggle Camera
+  const toggleCamera = () => {
+    if (cameraOn) {
+      streamRef.current
+        ?.getVideoTracks()
+        .forEach(track => (track.enabled = false));
+    } else {
+      streamRef.current
+        ?.getVideoTracks()
+        .forEach(track => (track.enabled = true));
+    }
+    setCameraOn(!cameraOn);
+  };
+
+  // 🎙️ Toggle Mic
+  const toggleMic = () => {
+    streamRef.current
+      ?.getAudioTracks()
+      .forEach(track => (track.enabled = !micOn));
+    setMicOn(!micOn);
+  };
+
+  // 🔁 Init interview
   useEffect(() => {
+    resetInterview();
+
     let mounted = true;
 
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        if (!mounted) return;
-        streamRef.current = stream;
-        videoRef.current.srcObject = stream;
-        setTimeout(startRecording, 1500);
-      })
-      .catch(console.error);
+    startCamera().then(() => {
+      if (!mounted) return;
+      setTimeout(startRecording, 1500);
+    });
 
-    // 🔴 cleanup on unmount
     return () => {
       mounted = false;
       stopCamera();
@@ -65,7 +102,7 @@ const InterviewRoom = () => {
     nextQuestion(transcript, score);
 
     if (finished) {
-      stopCamera();          // 🔴 STOP CAMERA
+      stopCamera();
       navigate("/feedback");
     } else {
       startRecording();
@@ -84,8 +121,19 @@ const InterviewRoom = () => {
           autoPlay
           muted
           playsInline
-          className="camera-box"
+          className={`camera-box ${!cameraOn ? "camera-off" : ""}`}
         />
+
+        {/* 🔘 CONTROLS */}
+        <div className="media-controls">
+          <button onClick={toggleCamera} className="control-btn">
+            {cameraOn ? "🎥 Camera On" : "🚫 Camera Off"}
+          </button>
+
+          <button onClick={toggleMic} className="control-btn">
+            {micOn ? "🎙️ Mic On" : "🔇 Mic Muted"}
+          </button>
+        </div>
 
         <ProgressBar
           current={currentIndex + 1}
