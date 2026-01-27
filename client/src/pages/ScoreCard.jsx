@@ -1,96 +1,61 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useInterview } from "../context/InterviewContext";
-import "../styles/scorecard.css";
+import "../styles/ScoreCard.css";
 
 const ScoreCard = () => {
   const navigate = useNavigate();
-  const { role } = useParams(); // ✅ get role from URL
-  const { results } = useInterview();
+  const { role } = useParams();
 
-  const score = results?.totalScore ?? 0;
+  // ✅ TEMP score (later replace with backend value)
+  const score = 72;
 
-  const verdict =
-    score >= 80 ? "Excellent" : score >= 60 ? "Good" : "Needs Improvement";
+  // ✅ SAFETY (prevents NaN%)
+  const safeScore = Number.isFinite(score) ? score : 0;
 
   return (
-    <div className="scorecard-page">
-      <div className="scorecard-container glass-card">
+    <div className="score-page">
+      <div className="score-card">
+        <h1>Interview Score Card</h1>
 
-        {/* HEADER */}
-        <h1 className="score-title">Interview Score Card</h1>
-        <p className="score-subtitle">AI Performance Evaluation</p>
-
-        {/* OVERALL SCORE */}
-        <div className="overall-section">
+        <div className="score-value">
+          {/* SCORE CIRCLE */}
           <div
-            className="score-ring"
-            style={{ "--score": `${score}%` }}
+            className="score-circle"
+            style={{ "--score": safeScore }}
           >
-            <span>{score}%</span>
+            <span className="score-percent">{safeScore}%</span>
           </div>
 
-          <div className={`verdict ${verdict.toLowerCase().replace(" ", "-")}`}>
-            {verdict}
+          {/* SCORE DETAILS */}
+          <div className="score-details">
+            <p>
+              <strong>Role:</strong> {role.toUpperCase()}
+            </p>
+            <p>
+              Overall interview performance based on communication,
+              confidence, and technical accuracy.
+            </p>
           </div>
         </div>
 
-        {/* SKILL METRICS */}
-        <div className="metrics-grid">
-          <Metric title="Confidence" value={results?.confidence ?? 0} />
-          <Metric title="Sentiment" value={results?.sentiment ?? 0} />
-          <Metric title="Clarity" value={results?.clarity ?? 0} />
-          <Metric title="Communication" value={results?.communication ?? 0} />
-        </div>
-
-        {/* QUESTION BREAKDOWN */}
-        <div className="question-section">
-          <h2>Question-wise Analysis</h2>
-
-          {results?.questionScores?.map((q, i) => (
-            <div key={i} className="question-card">
-              <h4>Question {i + 1}</h4>
-
-              <div className="bar">
-                <span>Confidence</span>
-                <div className="progress">
-                  <div style={{ width: `${q.confidence}%` }} />
-                </div>
-              </div>
-
-              <div className="bar">
-                <span>Sentiment</span>
-                <div className="progress">
-                  <div style={{ width: `${q.sentiment}%` }} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ACTIONS */}
-        <div className="actions">
-          <button onClick={() => navigate(`/feedback/${role}`)}>
+        {/* ACTION BUTTONS */}
+        <div className="score-actions">
+          <button
+            className="primary-btn"
+            onClick={() => navigate(`/feedback/${role}`)}
+          >
             View Feedback
           </button>
 
           <button
-            className="secondary"
+            className="secondary-btn"
             onClick={() => navigate(`/interview-setup/${role}`)}
           >
             Retake Interview
           </button>
         </div>
-
       </div>
     </div>
   );
 };
-
-const Metric = ({ title, value }) => (
-  <div className="metric-card">
-    <h3>{value}%</h3>
-    <p>{title}</p>
-  </div>
-);
 
 export default ScoreCard;

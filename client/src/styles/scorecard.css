@@ -1,157 +1,150 @@
-/* PAGE */
-.scorecard-page {
+/* PAGE BACKGROUND */
+.score-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: radial-gradient(
+      circle at top,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    ),
+    linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  color: #e0f7fa;
-}
-
-/* CONTAINER */
-.scorecard-container {
-  max-width: 1100px;
-  width: 100%;
   padding: 30px;
-  border-radius: 20px;
+  color: #eaf6f6;
 }
 
-/* HEADER */
-.score-title {
-  text-align: center;
-  font-size: 2.2rem;
-  color: #00e5ff;
+/* MAIN CARD */
+.score-card {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  border-radius: 24px;
+  padding: 40px 50px;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: fadeUp 0.6s ease;
 }
 
-.score-subtitle {
-  text-align: center;
-  opacity: 0.8;
+/* TITLE */
+.score-card h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   margin-bottom: 30px;
 }
 
-/* OVERALL */
-.overall-section {
+/* SCORE SECTION */
+.score-value {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 30px;
+  margin-bottom: 40px;
 }
 
-/* SCORE RING */
-.score-ring {
-  width: 140px;
-  height: 140px;
+/* CIRCULAR SCORE */
+.score-circle {
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   background: conic-gradient(
-    #00e5ff var(--score),
+    #4dd0e1 calc(var(--score) * 1%),
     rgba(255, 255, 255, 0.15) 0
   );
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
-.score-ring span {
-  font-size: 1.8rem;
-  font-weight: bold;
+.score-circle::before {
+  content: "";
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(10, 30, 40, 0.9);
+  position: absolute;
 }
 
-/* VERDICT */
-.verdict {
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-weight: bold;
+.score-percent {
+  position: relative;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #4dd0e1;
 }
 
-.verdict.excellent {
-  background: #00e676;
-  color: black;
+/* SCORE TEXT */
+.score-details {
+  font-size: 1.05rem;
+  color: #cfecec;
+  line-height: 1.6;
 }
 
-.verdict.good {
-  background: #ffeb3b;
-  color: black;
+.score-details strong {
+  color: #ffffff;
 }
 
-.verdict.needs-improvement {
-  background: #ff5252;
-}
-
-/* METRICS */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin: 30px 0;
-}
-
-.metric-card {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 20px;
-  border-radius: 16px;
-  text-align: center;
-}
-
-/* QUESTIONS */
-.question-section h2 {
-  margin-bottom: 14px;
-}
-
-.question-card {
-  background: rgba(0, 0, 0, 0.4);
-  padding: 16px;
-  border-radius: 14px;
-  margin-bottom: 12px;
-}
-
-/* BARS */
-.bar {
-  margin-top: 8px;
-}
-
-.bar span {
-  font-size: 0.85rem;
-}
-
-.progress {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress div {
-  height: 100%;
-  background: #00e5ff;
-}
-
-/* ACTIONS */
-.actions {
+/* BUTTONS */
+.score-actions {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 30px;
+  gap: 18px;
+  margin-top: 20px;
 }
 
-.actions button {
-  padding: 12px 28px;
-  border-radius: 999px;
+.score-actions button {
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 30px;
   border: none;
-  font-weight: bold;
   cursor: pointer;
-  background: linear-gradient(90deg, #00e5ff, #00bcd4);
+  transition: all 0.25s ease;
 }
 
-.actions .secondary {
+/* PRIMARY */
+.score-actions .primary-btn {
+  background: linear-gradient(135deg, #4dd0e1, #26c6da);
+  color: #00363d;
+}
+
+.score-actions .primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(77, 208, 225, 0.4);
+}
+
+/* SECONDARY */
+.score-actions .secondary-btn {
   background: transparent;
-  border: 1px solid #00e5ff;
-  color: #00e5ff;
+  color: #eaf6f6;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* MOBILE */
-@media (max-width: 900px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
+.score-actions .secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ANIMATION */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .score-card {
+    padding: 30px 25px;
+  }
+
+  .score-value {
+    flex-direction: column;
+    text-align: center;
   }
 }

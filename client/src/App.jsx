@@ -62,10 +62,9 @@ function App() {
               <InterviewHistory />
             </ProtectedRoute>
           }
-       />
+        />
 
-
-        {/* ✅ ScoreCard MUST have a param */}
+        {/* ✅ CORRECT SCORECARD ROUTE */}
         <Route
           path="/scorecard/:role"
           element={
