@@ -1,9 +1,22 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../../styles/navbar.css";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const isAuth = localStorage.getItem("isAuthenticated");
+
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Sync icon with body class on load
+  useEffect(() => {
+    setDarkMode(document.body.classList.contains("dark"));
+  }, []);
+
+  const toggleTheme = () => {
+    document.body.classList.toggle("dark");
+    setDarkMode((prev) => !prev);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -47,6 +60,11 @@ const Navbar = () => {
             </>
           )}
         </div>
+
+        {/* 🌙 / ☀️ Theme Toggle */}
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {darkMode ? "☀️" : "🌙"}
+        </button>
       </div>
     </nav>
   );

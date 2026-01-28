@@ -19,6 +19,21 @@
   z-index: 1000;
 }
 
+body.dark .features {
+  background: linear-gradient(
+    120deg,
+    #050505,
+    #0f2027,
+    #000
+  );
+}
+
+body.dark .feature-card {
+  background: rgba(18, 18, 18, 0.9);
+  color: #f5f5f5;
+}
+
+
 /* ===============================
    LOGO
 ================================ */
@@ -88,6 +103,21 @@
 .nav-links a.active {
   color: #00e5ff;
 }
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  margin-left: 20px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.theme-toggle:hover {
+  transform: rotate(20deg) scale(1.2);
+  opacity: 0.85;
+}
+
 
 /* ===============================
    AUTH BUTTONS
