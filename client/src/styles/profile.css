@@ -216,5 +216,6 @@ html {
 .skill-tag .remove-skill {
     cursor: pointer;
     font-weight: bold;
+    
     color: #0f2027;
 }
