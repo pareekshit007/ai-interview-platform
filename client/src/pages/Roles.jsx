@@ -1,10 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/roles.css";
 
 const Roles = () => {
   const navigate = useNavigate();
   const [activeRole, setActiveRole] = useState(null);
+
+  /* ✅ lock background scroll when modal open (keeps scroll modern & clean) */
+  useEffect(() => {
+    if (activeRole) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => (document.body.style.overflow = "auto");
+  }, [activeRole]);
 
   const roles = [
     {
@@ -288,11 +298,13 @@ const Roles = () => {
         ))}
       </div>
 
-      {/* POP OUT DETAILS */}
+      {/* MODAL */}
       {activeRole && (
         <div className="modal-overlay" onClick={() => setActiveRole(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2>{activeRole.icon} {activeRole.title}</h2>
+            <h2>
+              {activeRole.icon} {activeRole.title}
+            </h2>
 
             <p><b>About:</b> {activeRole.about}</p>
             <p><b>Who should take this:</b> {activeRole.who}</p>

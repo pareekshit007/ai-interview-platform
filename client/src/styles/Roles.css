@@ -241,7 +241,50 @@ body.light .modal-card h4 {
   }
 }
 
+/* ========================= */
+/* MODERN SCROLLBAR STYLE    */
+/* ========================= */
+
+/* Chrome / Edge / Safari */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00ffc6, #00b894);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00d6a5, #009e7a);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #00ffc6 transparent;
+}
+
+/* Light theme scrollbar */
+
+body.light ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #007c6f, #005f56);
+}
+
+body.light * {
+  scrollbar-color: #007c6f transparent;
+}
+
+/* ========================= */
 /* ANIMATION */
+/* ========================= */
+
 @keyframes pop {
   from {
     transform: scale(0.9) translateY(15px);
