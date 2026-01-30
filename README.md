@@ -1,16 +1,73 @@
-# React + Vite
+🤖 AI Interview Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack mock interview platform that simulates real interview sessions with voice answers, timers, scoring, and feedback. Built to help candidates practice, analyze performance, and improve interview readiness.
 
-Currently, two official plugins are available:
+🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+🎯 Role-based mock interviews
 
-## React Compiler
+🎙️ Voice answer recording
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+⏱️ Per-question timer & progress bar
 
-## Expanding the ESLint configuration
+📊 Automated answer scoring
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+📝 Structured feedback & scorecard
+
+📚 Interview history tracking
+
+🔐 Authentication & protected routes
+
+🎨 Modern responsive UI with theme support
+
+🧩 Core Modules
+
+Interview Room (questions + timer + recorder)
+
+Scorecard & Feedback pages
+
+Dashboard & Interview History
+
+Role Selection & Setup
+
+Profile & Contact pages
+
+🛠 Tech Stack
+
+Frontend: React + Vite, React Router, Context API, Custom Hooks, CSS
+Backend: Node.js, Express
+Utilities: Audio recorder, answer analyzer, score calculator
+
+📂 Structure
+client/
+  src/
+    components/
+    pages/
+    hooks/
+    context/
+    services/
+    utils/
+server/
+▶️ Run Locally
+Backend
+cd server
+npm install
+npm start
+Frontend
+cd client
+npm install
+npm run dev
+
+Open → http://localhost:5173
+
+🔮 Future Improvements
+
+AI/LLM answer evaluation
+
+Speech-to-text transcripts
+
+AI question generation
+
+Video interview mode
+
+Analytics dashboard
