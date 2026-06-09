@@ -4,7 +4,6 @@ import "../styles/feedback.css";
 
 const parseFeedback = (text) => {
   if (!text) return null;
-  const sections = {};
   const patterns = {
     overall:      /OVERALL ASSESSMENT:\s*([\s\S]*?)(?=TOP STRENGTHS:|$)/i,
     strengths:    /TOP STRENGTHS:\s*([\s\S]*?)(?=KEY AREAS|$)/i,
@@ -12,57 +11,238 @@ const parseFeedback = (text) => {
     study:        /STUDY RECOMMENDATIONS:\s*([\s\S]*?)(?=FINAL VERDICT:|$)/i,
     verdict:      /FINAL VERDICT:\s*([\s\S]*?)$/i,
   };
-  Object.entries(patterns).forEach(([key,re])=>{const m=text.match(re);if(m)sections[key]=m[1].trim();});
-  return Object.keys(sections).length>0?sections:null;
+  const sections = {};
+  Object.entries(patterns).forEach(([key, re]) => {
+    const m = text.match(re);
+    if (m) sections[key] = m[1].trim();
+  });
+  return Object.keys(sections).length > 0 ? sections : null;
 };
 
-const BulletList = ({text})=>{
-  if(!text) return null;
-  const items=text.split("\n").filter(l=>l.trim().startsWith("•")||l.trim().startsWith("-"));
-  if(!items.length) return <p>{text}</p>;
-  return <ul>{items.map((item,i)=><li key={i}>{item.replace(/^[•\-]\s*/,"")}</li>)}</ul>;
+const BulletList = ({ text }) => {
+  if (!text) return null;
+  const items = text.split("\n").filter(l => l.trim().startsWith("•") || l.trim().startsWith("-"));
+  if (!items.length) return <p className="fb-para">{text}</p>;
+  return (
+    <ul className="fb-list">
+      {items.map((item, i) => <li key={i}>{item.replace(/^[•\-]\s*/, "")}</li>)}
+    </ul>
+  );
+};
+
+const ScoreRing = ({ score, label, color }) => {
+  const r = 30, circ = 2 * Math.PI * r;
+  const fill = circ - (score / 100) * circ;
+  return (
+    <div className="score-ring-wrap">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+        <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="7"
+          strokeDasharray={circ} strokeDashoffset={fill}
+          strokeLinecap="round" transform="rotate(-90 40 40)"
+          style={{ transition: "stroke-dashoffset 1s ease" }}/>
+        <text x="40" y="45" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700">{score}%</text>
+      </svg>
+      <span className="score-ring-label">{label}</span>
+    </div>
+  );
+};
+
+const ProgressBar = ({ score, label }) => {
+  const color =
+    score >= 85 ? "#22c55e" :
+    score >= 70 ? "#00e5ff" :
+    score >= 50 ? "#f59e0b" : "#ef4444";
+  return (
+    <div className="pb-row">
+      <span className="pb-label">{label}</span>
+      <div className="pb-track">
+        <div className="pb-fill" style={{ width: `${score}%`, background: color }} />
+      </div>
+      <span className="pb-val" style={{ color }}>{score}%</span>
+    </div>
+  );
+};
+
+const VERDICT_CONFIG = {
+  Excellent: { color: "#22c55e", bg: "rgba(34,197,94,0.1)",  border: "rgba(34,197,94,0.3)",  emoji: "🏆" },
+  Good:      { color: "#00e5ff", bg: "rgba(0,229,255,0.08)", border: "rgba(0,229,255,0.25)", emoji: "✅" },
+  Average:   { color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.3)", emoji: "📈" },
+  "Needs Work": { color: "#ef4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.3)", emoji: "💪" },
+};
+
+const ROLE_LABELS = {
+  frontend:    "Frontend Developer",
+  backend:     "Backend Developer",
+  fullstack:   "Full Stack Developer",
+  devops:      "DevOps Engineer",
+  datascience: "Data Scientist",
 };
 
 const Feedback = () => {
   const navigate = useNavigate();
-  const { role } = useParams();
+  const { role }  = useParams();
   const { results } = useInterview();
-  const sessionFeedback = results?.sessionFeedback||"";
-  const parsed = parseFeedback(sessionFeedback);
-  const questionScores = results?.questionScores||[];
+
+  const sessionFeedback = results?.sessionFeedback || "";
+  const parsed          = parseFeedback(sessionFeedback);
+  const questionScores  = results?.questionScores  || [];
+  const totalScore      = results?.totalScore ?? 0;
+  const verdict         = results?.verdict || "Average";
+  const vConf           = VERDICT_CONFIG[verdict] || VERDICT_CONFIG["Average"];
+
+  const metrics = [
+    { label: "Confidence",    val: results?.confidence    ?? 0, color: "#6366f1" },
+    { label: "Clarity",       val: results?.clarity       ?? 0, color: "#00e5ff" },
+    { label: "Sentiment",     val: results?.sentiment     ?? 0, color: "#22c55e" },
+    { label: "Communication", val: results?.communication ?? 0, color: "#f59e0b" },
+  ];
 
   return (
-    <div className="feedback-page">
-      <div className="feedback-container glass-card">
-        <h1 className="feedback-title">AI Interview Feedback</h1>
-        <p className="feedback-role">{role?.toUpperCase()} · Score: {results?.totalScore??0}% · {results?.verdict}</p>
-        {parsed?.overall&&<div className="feedback-section"><h3>Overall Assessment</h3><p>{parsed.overall}</p></div>}
-        {parsed?.strengths&&<div className="feedback-section strengths"><h3>✅ Top Strengths</h3><BulletList text={parsed.strengths}/></div>}
-        {parsed?.improvements&&<div className="feedback-section improvements"><h3>🎯 Areas to Improve</h3><BulletList text={parsed.improvements}/></div>}
-        {parsed?.study&&<div className="feedback-section study"><h3>📚 Study Recommendations</h3><BulletList text={parsed.study}/></div>}
-        {!parsed&&sessionFeedback&&<div className="feedback-section"><h3>Feedback</h3><pre className="raw-feedback">{sessionFeedback}</pre></div>}
-        {questionScores.length>0&&(
-          <div className="question-feedback">
-            <h3>Per-Question Breakdown</h3>
-            {questionScores.map((q,i)=>(
-              <div key={i} className="question-feedback-card">
-                <h4>Question {i+1}</h4>
-                <p className="q-text">{q.question}</p>
-                <div className="q-scores">
-                  <span>Score: {q.score}%</span>
-                  <span>Confidence: {q.confidence}%</span>
-                  <span>Clarity: {q.clarity}%</span>
-                </div>
-                {q.transcript&&<p className="q-transcript"><em>"{q.transcript.substring(0,150)}{q.transcript.length>150?"...":""}"</em></p>}
+    <div className="fb-page">
+      <div className="fb-wrap">
+
+        {/* ── HEADER ── */}
+        <div className="fb-header">
+          <div className="fb-role-pill">{ROLE_LABELS[role] || role} Interview</div>
+          <h1 className="fb-title">Your Interview Results</h1>
+          <p className="fb-sub">Here's a detailed breakdown of your performance</p>
+        </div>
+
+        {/* ── SCORE HERO ── */}
+        <div className="fb-hero">
+          <div className="fb-hero-left">
+            <div className="fb-total-score" style={{ color: vConf.color }}>
+              {totalScore}
+            </div>
+            <div className="fb-total-label">Overall Score</div>
+            <div className="fb-verdict-badge"
+              style={{ background: vConf.bg, border: `1px solid ${vConf.border}`, color: vConf.color }}>
+              {vConf.emoji} {verdict}
+            </div>
+          </div>
+
+          <div className="fb-hero-right">
+            <div className="fb-rings">
+              {metrics.map(m => (
+                <ScoreRing key={m.label} score={m.val} label={m.label} color={m.color} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── PROGRESS BARS ── */}
+        <div className="fb-card">
+          <h3 className="fb-card-title">📊 Score Breakdown</h3>
+          <div className="pb-list">
+            {metrics.map(m => <ProgressBar key={m.label} score={m.val} label={m.label} />)}
+            <ProgressBar score={totalScore} label="Overall" />
+          </div>
+        </div>
+
+        {/* ── AI FEEDBACK SECTIONS ── */}
+        {parsed ? (
+          <div className="fb-sections">
+            {parsed.overall && (
+              <div className="fb-card">
+                <h3 className="fb-card-title">🤖 Overall Assessment</h3>
+                <p className="fb-para">{parsed.overall}</p>
               </div>
-            ))}
+            )}
+
+            <div className="fb-two-col">
+              {parsed.strengths && (
+                <div className="fb-card fb-card-green">
+                  <h3 className="fb-card-title">✅ Top Strengths</h3>
+                  <BulletList text={parsed.strengths} />
+                </div>
+              )}
+              {parsed.improvements && (
+                <div className="fb-card fb-card-red">
+                  <h3 className="fb-card-title">🎯 Areas to Improve</h3>
+                  <BulletList text={parsed.improvements} />
+                </div>
+              )}
+            </div>
+
+            {parsed.study && (
+              <div className="fb-card fb-card-blue">
+                <h3 className="fb-card-title">📚 Study Recommendations</h3>
+                <BulletList text={parsed.study} />
+              </div>
+            )}
+
+            {parsed.verdict && (
+              <div className="fb-card fb-verdict-card"
+                style={{ background: vConf.bg, borderColor: vConf.border }}>
+                <h3 className="fb-card-title" style={{ color: vConf.color }}>
+                  {vConf.emoji} Final Verdict
+                </h3>
+                <p className="fb-para">{parsed.verdict}</p>
+              </div>
+            )}
+          </div>
+        ) : sessionFeedback ? (
+          <div className="fb-card">
+            <h3 className="fb-card-title">🤖 AI Feedback</h3>
+            <pre className="fb-raw">{sessionFeedback}</pre>
+          </div>
+        ) : (
+          <div className="fb-card fb-no-feedback">
+            <span>🤖</span>
+            <p>No AI feedback available for this session.</p>
           </div>
         )}
-        <div className="feedback-actions">
-          <button onClick={()=>navigate(`/scorecard/${role}`)}>View Score Card</button>
-          <button className="secondary" onClick={()=>navigate(`/interview-setup/${role}`)}>Retake</button>
-          <button className="secondary" onClick={()=>navigate("/dashboard")}>Dashboard</button>
+
+        {/* ── PER QUESTION ── */}
+        {questionScores.length > 0 && (
+          <div className="fb-card">
+            <h3 className="fb-card-title">💬 Per-Question Breakdown</h3>
+            <div className="fb-q-list">
+              {questionScores.map((q, i) => {
+                const qColor =
+                  q.score >= 85 ? "#22c55e" :
+                  q.score >= 70 ? "#00e5ff" :
+                  q.score >= 50 ? "#f59e0b" : "#ef4444";
+                return (
+                  <div key={i} className="fb-q-card">
+                    <div className="fb-q-top">
+                      <div className="fb-q-num">Q{i + 1}</div>
+                      <p className="fb-q-text">{q.question}</p>
+                      <div className="fb-q-score" style={{ color: qColor, borderColor: qColor }}>
+                        {q.score}%
+                      </div>
+                    </div>
+                    <div className="fb-q-metrics">
+                      <span>Confidence <strong style={{ color: "#6366f1" }}>{q.confidence}%</strong></span>
+                      <span>Clarity <strong style={{ color: "#00e5ff" }}>{q.clarity}%</strong></span>
+                      <span>Sentiment <strong style={{ color: "#22c55e" }}>{q.sentiment}%</strong></span>
+                    </div>
+                    {q.transcript && (
+                      <div className="fb-q-transcript">
+                        "{q.transcript.substring(0, 180)}{q.transcript.length > 180 ? "…" : ""}"
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── ACTIONS ── */}
+        <div className="fb-actions">
+          <button className="fb-btn fb-btn-primary" onClick={() => navigate(`/scorecard/${role}`)}>
+            📋 View Scorecard
+          </button>
+          <button className="fb-btn fb-btn-secondary" onClick={() => navigate(`/interview-setup/${role}`)}>
+            🔁 Retake Interview
+          </button>
+          <button className="fb-btn fb-btn-ghost" onClick={() => navigate("/dashboard")}>
+            📊 Dashboard
+          </button>
         </div>
+
       </div>
     </div>
   );

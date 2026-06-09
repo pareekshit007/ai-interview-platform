@@ -6,33 +6,38 @@ import { analyzeAnswer } from "../utils/analyzeAnswer";
 const InterviewContext = createContext();
 
 export const InterviewProvider = ({ children }) => {
-  const [questions,        setQuestions]        = useState([]);
-  const [currentIndex,     setCurrentIndex]     = useState(0);
-  const [answers,          setAnswers]          = useState([]);
-  const [scores,           setScores]           = useState([]);
-  const [finished,         setFinished]         = useState(false);
-  const [loading,          setLoading]          = useState(false);
-  const [error,            setError]            = useState("");
-  const [interviewId,      setInterviewId]      = useState(null);
-  const [sessionFeedback,  setSessionFeedback]  = useState("");
-  const [currentRole,      setCurrentRole]      = useState("");
-  const [currentDifficulty,setCurrentDifficulty]= useState("medium");
+  const [questions,         setQuestions]         = useState([]);
+  const [currentIndex,      setCurrentIndex]      = useState(0);
+  const [answers,           setAnswers]           = useState([]);
+  const [scores,            setScores]            = useState([]);
+  const [finished,          setFinished]          = useState(false);
+  const [loading,           setLoading]           = useState(false);
+  const [error,             setError]             = useState("");
+  const [interviewId,       setInterviewId]       = useState(null);
+  const [sessionFeedback,   setSessionFeedback]   = useState("");
+  const [currentRole,       setCurrentRole]       = useState("");
+  const [currentDifficulty, setCurrentDifficulty] = useState("medium");
 
   const startInterviewSession = async (role, difficulty = "medium") => {
-    setLoading(true);
+    // ✅ Reset everything immediately — before any API call
+    // This prevents stale currentIndex from a previous session
+    setCurrentIndex(0);
+    setAnswers([]);
+    setScores([]);
+    setFinished(false);
+    setSessionFeedback("");
+    setQuestions([]);
+    setInterviewId(null);
     setError("");
     setCurrentRole(role);
     setCurrentDifficulty(difficulty);
+    setLoading(true);
+
     try {
-      const { questions: qs } = await fetchQuestions({ role, difficulty, count: 5 });
-      const { interviewId: id } = await startInterview({ role, difficulty, questions: qs });
+      const { questions: qs }     = await fetchQuestions({ role, difficulty, count: 5 });
+      const { interviewId: id }   = await startInterview({ role, difficulty, questions: qs });
       setQuestions(qs);
       setInterviewId(id);
-      setCurrentIndex(0);
-      setAnswers([]);
-      setScores([]);
-      setFinished(false);
-      setSessionFeedback("");
     } catch (err) {
       setError(err.message || "Failed to start interview");
     } finally {
@@ -81,10 +86,10 @@ export const InterviewProvider = ({ children }) => {
   const results = {
     totalScore, interviewId,
     role: currentRole, difficulty: currentDifficulty,
-    confidence: totalScore,
-    sentiment:  Math.max(totalScore - 10, 0),
-    clarity:    Math.max(totalScore - 5,  0),
-    communication: Math.max(totalScore - 8, 0),
+    confidence:    totalScore,
+    sentiment:     Math.max(totalScore - 10, 0),
+    clarity:       Math.max(totalScore - 5,  0),
+    communication: Math.max(totalScore - 8,  0),
     verdict:
       totalScore >= 85 ? "Excellent"
       : totalScore >= 70 ? "Good"
