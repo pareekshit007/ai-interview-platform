@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { fetchHistory } from "../services/interviewService";
 import { logoutUser } from "../services/authService";
 import Loader from "../components/common/Loader";
-import "../styles/Dashboard.css";
+import "../styles/dashboard.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
