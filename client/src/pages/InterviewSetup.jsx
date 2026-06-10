@@ -48,10 +48,26 @@ const ROLE_LABELS = {
 
 const STEPS = ["Difficulty", "Device Check", "Ready"];
 
+// Check if user has AI-personalisable profile data
+const getProfileContextStatus = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem("user"));
+    if (!stored) return { hasContext: false, items: [] };
+    const items = [];
+    if (stored.skills?.length > 0)        items.push(`${stored.skills.length} skills`);
+    if (stored.experience?.trim())         items.push("experience");
+    if (stored.certificationsText?.trim()) items.push("certifications");
+    if (stored.projectsText?.trim())       items.push("projects");
+    if (stored.resumeFile)                 items.push("resume");
+    return { hasContext: items.length > 0, items };
+  } catch { return { hasContext: false, items: [] }; }
+};
+
 const InterviewSetup = () => {
   const { role }    = useParams();
   const navigate    = useNavigate();
   const { startInterviewSession, loading, error } = useInterview();
+  const profileCtx = getProfileContextStatus();
 
   const [step,       setStep]       = useState(0); // 0=difficulty, 1=devices, 2=ready
   const [difficulty, setDifficulty] = useState("medium");
@@ -260,6 +276,19 @@ const InterviewSetup = () => {
                 <div className="summary-row">
                   <span className="summary-label">Devices</span>
                   <span className="summary-value">✅ Camera &amp; mic ready</span>
+                </div>
+                <div className="summary-row">
+                  <span className="summary-label">AI Profile</span>
+                  {profileCtx.hasContext ? (
+                    <span className="summary-value" style={{ color: "#22c55e" }}>
+                      ✨ Personalised — {profileCtx.items.join(", ")}
+                    </span>
+                  ) : (
+                    <span className="summary-value" style={{ color: "#64748b", fontSize: "13px" }}>
+                      Generic questions ·{" "}
+                      <a href="/profile" style={{ color: "var(--primary)" }}>add profile →</a>
+                    </span>
+                  )}
                 </div>
               </div>
 

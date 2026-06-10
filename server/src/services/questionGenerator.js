@@ -38,7 +38,13 @@ const FALLBACK_QUESTIONS = {
   ],
 };
 
-const generateQuestions = async (role = "frontend", difficulty = "medium", count = 5) => {
+/**
+ * @param {string} role
+ * @param {string} difficulty
+ * @param {number} count
+ * @param {object|null} resumeContext  - { skills, experience, certifications, projects, summary }
+ */
+const generateQuestions = async (role = "frontend", difficulty = "medium", count = 5, resumeContext = null) => {
   try {
     const difficultyNote = {
       easy:   "entry-level candidates with 0-1 years experience",
@@ -46,9 +52,33 @@ const generateQuestions = async (role = "frontend", difficulty = "medium", count
       hard:   "senior candidates with 4+ years experience",
     }[difficulty] || "mid-level candidates";
 
+    // Build resume context block if provided
+    let resumeSection = "";
+    if (resumeContext) {
+      const parts = [];
+      if (resumeContext.skills?.length)
+        parts.push(`Skills: ${resumeContext.skills.join(", ")}`);
+      if (resumeContext.experience)
+        parts.push(`Work Experience:\n${resumeContext.experience}`);
+      if (resumeContext.certifications)
+        parts.push(`Certifications:\n${resumeContext.certifications}`);
+      if (resumeContext.projects)
+        parts.push(`Projects:\n${resumeContext.projects}`);
+      if (resumeContext.summary)
+        parts.push(`Professional Summary: ${resumeContext.summary}`);
+
+      if (parts.length > 0) {
+        resumeSection = `\n\nCANDIDATE PROFILE (use this to personalise questions):\n${parts.join("\n")}\n\nPersonalisation rules:
+- Reference specific technologies from the candidate's skill set
+- Ask about projects or experiences they have listed (probe for depth and lessons learned)
+- If certifications are listed, probe that knowledge area
+- Mix generic role questions with personalised ones (aim for ~40% personalised)`;
+      }
+    }
+
     const prompt = `Generate exactly ${count} technical interview questions for a ${role} developer role.
 Target: ${difficultyNote}.
-Difficulty: ${difficulty}.
+Difficulty: ${difficulty}.${resumeSection}
 
 Rules:
 - Mix of technical knowledge, problem-solving, and behavioral questions

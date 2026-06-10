@@ -3,8 +3,8 @@ const { generateAnswerFeedback, generateSessionFeedback } = require("../services
 
 const getQuestions = async (req, res) => {
   try {
-    const { role = "frontend", difficulty = "medium", count = 5 } = req.body;
-    const questions = await generateQuestions(role, difficulty, Number(count));
+    const { role = "frontend", difficulty = "medium", count = 5, resumeContext = null } = req.body;
+    const questions = await generateQuestions(role, difficulty, Number(count), resumeContext);
     res.json({ questions });
   } catch (error) {
     res.status(500).json({ message: error.message });
