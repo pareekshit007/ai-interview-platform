@@ -18,6 +18,7 @@ import InterviewHistory from "./pages/InterviewHistory";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
+// Redirects already-logged-in users away from /login and /signup
 const PublicRoute = ({ children }) => {
   const token  = localStorage.getItem("token");
   const isAuth = localStorage.getItem("isAuthenticated");
@@ -46,6 +47,7 @@ function App() {
         <Route path="/feedback/:role"        element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         <Route path="/profile"               element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />

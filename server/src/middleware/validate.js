@@ -5,7 +5,7 @@ const handleValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      message: "Use A Strong Password",
+      message: "Validation failed",
       errors: errors.array().map((e) => ({ field: e.path, message: e.msg })),
     });
   }
@@ -98,7 +98,7 @@ const validateUpdateProfile = [
 
 // ── Interview ────────────────────────────────────────────────────────────────
 
-const VALID_ROLES       = ["frontend", "backend", "fullstack", "devops", "datascience"];
+const VALID_ROLES        = ["frontend", "backend", "fullstack", "devops", "datascience"];
 const VALID_DIFFICULTIES = ["easy", "medium", "hard"];
 
 const validateStartInterview = [
