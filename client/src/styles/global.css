@@ -9,44 +9,55 @@
 }
 
 /* ===============================
-   THEME VARIABLES
-   Dark theme = your existing design
+   CSS VARIABLES — dark (default)
 ================================ */
-:root {
-  /* backgrounds */
-  --bg-main: #0b0b0b;
-  --bg-secondary: #0f2027;
-  --bg-card: rgba(18, 18, 18, 0.9);
+:root,
+body.dark {
+  --bg-main:       #0b0b0b;
+  --bg-secondary:  #0f2027;
+  --bg-card:       rgba(18, 18, 18, 0.9);
+  --text-primary:  #f5f5f5;
+  --text-secondary:#cfd8dc;
+  --accent:        #00e5ff;
+  --accent-2:      #00bcd4;
+  --accent-soft:   rgba(0, 229, 255, 0.15);
+  --glass-bg:      rgba(255, 255, 255, 0.08);
+  --border-soft:   rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.18);
 
-  /* text */
-  --text-primary: #f5f5f5;
-  --text-secondary: #cfd8dc;
-
-  /* accent */
-  --accent: #00e5ff;
-  --accent-soft: rgba(0, 229, 255, 0.15);
-
-  /* effects */
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --border-soft: rgba(255, 255, 255, 0.12);
+  /* page gradients */
+  --page-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  --card-bg:       rgba(255, 255, 255, 0.04);
+  --card-border:   rgba(255, 255, 255, 0.08);
+  --input-bg:      rgba(255, 255, 255, 0.05);
+  --input-border:  rgba(255, 255, 255, 0.1);
+  --muted:         #64748b;
+  --muted-2:       #475569;
 }
 
 /* ===============================
-   LIGHT THEME (matches dark vibe)
+   LIGHT MODE
 ================================ */
 body.light {
-  --bg-main: #f5f7fb;
-  --bg-secondary: #e8edf5;
-  --bg-card: #ffffff;
+  --bg-main:       #f2f3f5;
+  --bg-secondary:  #e8eaed;
+  --bg-card:       #f7f8fa;
+  --text-primary:  #1e2a35;
+  --text-secondary:#4a5568;
+  --accent:        #2b8a9e;
+  --accent-2:      #1f6e7e;
+  --accent-soft:   rgba(43, 138, 158, 0.12);
+  --glass-bg:      rgba(245, 246, 248, 0.85);
+  --border-soft:   rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.15);
 
-  --text-primary: #0f2027;
-  --text-secondary: #455a64;
-
-  --accent: #00bcd4;
-  --accent-soft: rgba(0, 188, 212, 0.18);
-
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --border-soft: rgba(0, 0, 0, 0.08);
+  --page-gradient: linear-gradient(135deg, #e8eaed, #edeef1);
+  --card-bg:       #f7f8fa;
+  --card-border:   rgba(0, 0, 0, 0.08);
+  --input-bg:      #eeeff2;
+  --input-border:  #d4d6db;
+  --muted:         #606778;
+  --muted-2:       #4a5568;
 }
 
 /* ===============================
@@ -58,15 +69,593 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Explicit dark class (mirrors :root defaults) */
-body.dark {
-  --bg-main: #0b0b0b;
-  --bg-secondary: #0f2027;
-  --bg-card: rgba(18, 18, 18, 0.9);
-  --text-primary: #f5f5f5;
-  --text-secondary: #cfd8dc;
-  --accent: #00e5ff;
-  --accent-soft: rgba(0, 229, 255, 0.15);
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --border-soft: rgba(255, 255, 255, 0.12);
+/* Smooth transitions — only on bg/color, not layout */
+*, *::before, *::after {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.15s ease,
+    box-shadow 0.25s ease;
 }
+
+/* ===============================
+   PAGES THAT USE --page-gradient
+================================ */
+.fb-page,
+.sc-page,
+.ih-page,
+.pr-page,
+.interview-page,
+.setup-page,
+.audio-mode-card {
+  background: var(--page-gradient);
+  color: var(--text-primary);
+}
+
+/* ===============================
+   GENERIC CARD OVERRIDE
+================================ */
+body.light .fb-card,
+body.light .sc-front,
+body.light .sc-back,
+body.light .ih-stat-card,
+body.light .ih-chart-card,
+body.light .ih-table-card,
+body.light .pr-section,
+body.light .pr-avatar-wrap,
+body.light .pr-completeness,
+body.light .pr-stats,
+body.light .pr-card,
+body.light .setup-card,
+body.light .diff-card,
+body.light .device-card,
+body.light .ready-summary,
+body.light .glass-card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+/* ===============================
+   INPUTS & TEXTAREAS
+================================ */
+body.light input,
+body.light textarea,
+body.light select,
+body.light .pr-field input,
+body.light .pr-input,
+body.light .pr-textarea,
+body.light .ih-select {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+body.light input:focus,
+body.light textarea:focus {
+  border-color: rgba(0, 188, 212, 0.5);
+  outline: none;
+}
+
+body.light input::placeholder,
+body.light textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* ===============================
+   TEXT COLORS
+================================ */
+body.light .fb-para,
+body.light .fb-list li,
+body.light .fb-q-metrics,
+body.light .fb-q-transcript,
+body.light .fb-raw,
+body.light .pr-card-desc,
+body.light .pr-section-sub,
+body.light .ih-date,
+body.light .ready-tips li,
+body.light .diff-desc,
+body.light .diff-tag,
+body.light .sc-info-label,
+body.light .pr-field label,
+body.light .pr-comp-hint,
+body.light .pr-suggest-label,
+body.light .section-label,
+body.light .summary-label,
+body.light .score-ring-label,
+body.light .pb-label,
+body.light .ih-chart-sub,
+body.light .pr-hint,
+body.light .pr-empty,
+body.light .ct-label {
+  color: var(--muted);
+}
+
+body.light .fb-card-title,
+body.light .fb-q-text,
+body.light .ih-chart-header h3,
+body.light .ih-table-topbar h3,
+body.light .pr-name,
+body.light .pr-card-header strong,
+body.light .sc-info-val,
+body.light .ih-role,
+body.light .sc-title,
+body.light .fb-title {
+  color: var(--text-primary);
+}
+
+body.light .fb-role-pill,
+body.light .sc-back-section-title,
+body.light .pr-degree,
+body.light .pr-section-title,
+body.light .pr-add-title,
+body.light .pr-tab.active,
+body.light .tips-label,
+body.light .ih-stat-value,
+body.light .pr-stat span {
+  color: var(--accent-2);
+}
+
+/* ===============================
+   ACCENTS / BORDERS
+================================ */
+body.light .fb-card-title {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light .summary-row {
+  border-color: var(--input-border);
+}
+
+body.light .sc-front-left {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 188, 212, 0.12);
+}
+
+body.light .sc-back-divider {
+  background: rgba(43, 138, 158, 0.12);
+}
+
+body.light .sc-flip-hint,
+body.light .sc-hint {
+  color: #94a3b8;
+}
+
+body.light .sc-metric-track,
+body.light .pb-track,
+body.light .ih-score-bar-track {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+body.light .sc-role-pill,
+body.light .fb-role-pill,
+body.light .ih-count {
+  background: rgba(43, 138, 158, 0.1);
+  border-color: rgba(43, 138, 158, 0.18);
+}
+
+/* ===============================
+   PROGRESS BARS & RINGS
+================================ */
+body.light .pr-comp-track {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+/* ===============================
+   TABS
+================================ */
+body.light .pr-tabs {
+  background: var(--input-bg);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light .pr-tab {
+  color: var(--muted);
+}
+
+body.light .pr-tab.active {
+  background: rgba(43, 138, 158, 0.1);
+  border-color: rgba(43, 138, 158, 0.2);
+}
+
+/* ===============================
+   BUTTONS
+================================ */
+body.light .nav-btn.ghost,
+body.light .pr-ghost-btn,
+body.light .fb-btn-ghost,
+body.light .sc-btn-ghost,
+body.light .ih-view-btn {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--muted);
+}
+
+body.light .fb-btn-secondary,
+body.light .sc-btn-secondary {
+  background: rgba(43, 138, 158, 0.08);
+  border-color: rgba(43, 138, 158, 0.2);
+  color: var(--accent-2);
+}
+
+body.light .pr-save-btn,
+body.light .nav-btn.primary {
+  background: linear-gradient(135deg, #2b8a9e, #1f6e7e);
+  color: #ffffff;
+}
+
+body.light .pr-save-btn.saved {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+body.light .pr-add-btn {
+  background: rgba(43, 138, 158, 0.1);
+  border-color: rgba(43, 138, 158, 0.2);
+  color: var(--accent-2);
+}
+
+body.light .pr-suggest-tag:hover {
+  background: rgba(43, 138, 158, 0.1);
+  border-color: rgba(43, 138, 158, 0.18);
+  color: var(--accent-2);
+}
+
+/* ===============================
+   TAGS / BADGES
+================================ */
+body.light .pr-tag {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+  color: #5b5ea6;
+}
+
+/* ===============================
+   FORMS — ADD CARDS
+================================ */
+body.light .pr-add-card {
+  background: rgba(43, 138, 158, 0.04);
+  border-color: rgba(43, 138, 158, 0.18);
+}
+
+body.light .pr-file-drop {
+  background: var(--input-bg);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.light .pr-resume-drop {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.light .pr-resume-drop:hover,
+body.light .pr-resume-drop.has-file {
+  border-color: rgba(43, 138, 158, 0.3);
+  background: rgba(43, 138, 158, 0.04);
+}
+
+body.light .pr-resume-tips {
+  background: rgba(99, 102, 241, 0.04);
+  border-color: rgba(99, 102, 241, 0.12);
+}
+
+body.light .pr-tips-list li { color: var(--muted); }
+
+body.light .pr-icon-btn {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ===============================
+   DIFFICULTY CARDS
+================================ */
+body.light .diff-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(43, 138, 158, 0.12);
+}
+
+body.light .diff-topic {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--muted);
+}
+
+body.light .ready-tips {
+  background: rgba(43, 138, 158, 0.05);
+  border-color: rgba(43, 138, 158, 0.12);
+}
+
+/* ===============================
+   INTERVIEW ROOM
+================================ */
+body.light .recorder-card {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+body.light .question-text,
+body.light .recorder-text {
+  color: var(--text-primary);
+}
+
+body.light .word-count {
+  background: #e2e8f0;
+  color: var(--muted);
+}
+
+body.light .control-btn {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+body.light .neon-btn {
+  background: linear-gradient(135deg, #2b8a9e, #1f6e7e);
+  color: #fff;
+}
+
+body.light .audio-mode-btn {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+body.light .audio-mode-btn:hover {
+  border-color: var(--accent);
+}
+
+body.light .audio-mode-note {
+  background: var(--input-bg);
+  color: var(--muted);
+}
+
+body.light .speaker-tip {
+  background: #fffbeb;
+}
+
+/* ===============================
+   FEEDBACK SPECIFIC
+================================ */
+body.light .fb-hero {
+  background: var(--card-bg);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+
+body.light .fb-q-card {
+  background: var(--input-bg);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light .fb-q-transcript {
+  background: var(--input-bg);
+  border-left-color: rgba(0, 188, 212, 0.3);
+}
+
+body.light .fb-no-feedback {
+  color: var(--muted);
+}
+
+/* ===============================
+   HISTORY
+================================ */
+body.light .ih-page {
+  color: var(--text-primary);
+}
+
+body.light .ih-hero h1 {
+  -webkit-text-fill-color: var(--text-primary);
+  background: none;
+}
+
+body.light .ih-hero p {
+  color: var(--muted);
+}
+
+body.light .ih-table-topbar {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light .ih-thead {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--muted);
+}
+
+body.light .ih-row {
+  border-color: rgba(0, 0, 0, 0.04);
+}
+
+body.light .ih-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+body.light .chart-tooltip {
+  background: var(--card-bg);
+  border-color: rgba(43, 138, 158, 0.2);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ===============================
+   DASHBOARD
+================================ */
+body.light .db-root {
+  background: #f0f4f8;
+  color: var(--text-primary);
+}
+
+body.light .db-orb { opacity: 0.05; }
+
+body.light .db-card,
+body.light .stat-card {
+  background: var(--card-bg);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+/* ===============================
+   HOME PAGE (hero always dark)
+================================ */
+body.light .hero {
+  filter: none; /* keep dark gradient */
+}
+
+/* sections below hero */
+body.light .features-section,
+body.light .how-it-works,
+body.light .stats-section,
+body.light .roles-section {
+  background: var(--bg-main);
+  color: var(--text-primary);
+}
+
+body.light .feature-card,
+body.light .step-card,
+body.light .role-card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+/* ===============================
+   AUTH PAGES (always dark gradient)
+================================ */
+body.light .auth-container {
+  filter: none;
+}
+
+/* ===============================
+   FOOTER — light mode
+================================ */
+body.light .footer {
+  background-image: none;
+  background: #1a2332;
+}
+
+body.light .footer-overlay {
+  background: linear-gradient(to bottom, rgba(18,28,42,0.92) 0%, rgba(10,15,26,0.97) 100%);
+}
+
+body.light .footer-logo       { color: #f1f5f9; }
+body.light .footer-logo span  { color: #38bdf8; }
+body.light .footer-tagline    { color: #94a3b8; }
+body.light .footer-badge      { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.22); color: #7dd3fc; }
+body.light .footer-col-title  { color: #38bdf8; }
+body.light .footer-col        { border-left-color: rgba(56,189,248,0.2); }
+body.light .footer-links a,
+body.light .footer-links span { color: #94a3b8; }
+body.light .footer-links a:hover { color: #e2e8f0; }
+body.light .footer-bottom     { border-top-color: rgba(56,189,248,0.15); color: #64748b; }
+body.light .footer-bottom-right { color: #64748b; }
+
+/* ── CARD VISIBILITY BOOST ── */
+body.light .fb-card,
+body.light .sc-front,
+body.light .sc-back,
+body.light .ih-stat-card,
+body.light .ih-chart-card,
+body.light .ih-table-card,
+body.light .pr-section,
+body.light .pr-avatar-wrap,
+body.light .pr-completeness,
+body.light .pr-stats,
+body.light .pr-card,
+body.light .setup-card,
+body.light .diff-card,
+body.light .device-card,
+body.light .ready-summary,
+body.light .glass-card {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.07);
+  border-color: rgba(0,0,0,0.12) !important;
+}
+
+body.light .pr-add-card { border-color: rgba(43,138,158,0.25) !important; background: rgba(43,138,158,0.04); }
+body.light .ih-row      { border-color: rgba(0,0,0,0.07) !important; }
+
+/* ── TEXT VISIBILITY FIXES ── */
+body.light .fb-card-title          { color: #1e2a35 !important; border-color: rgba(0,0,0,0.08) !important; }
+body.light .sc-back-section-title  { color: #1f6e7e !important; }
+body.light .question-label         { color: #1f6e7e; }
+body.light .diff-label             { color: #1e2a35; }
+body.light .device-info strong     { color: #1e2a35; }
+body.light .device-info small      { color: #606778; }
+body.light .sc-info-val            { color: #1e2a35 !important; }
+body.light .sc-info-label          { color: #606778 !important; }
+body.light .timer-label            { color: #606778; }
+body.light .summary-value          { color: #1e2a35; }
+body.light .pr-card-header strong  { color: #1e2a35 !important; }
+body.light .pr-section-title       { color: #1f6e7e !important; }
+body.light .pr-tab.active          { color: #1f6e7e !important; }
+body.light .ih-stat-value          { color: #1f6e7e !important; }
+body.light .pr-stat span           { color: #1f6e7e !important; }
+body.light .pr-add-title           { color: #1f6e7e !important; }
+body.light .nav-btn.primary        { color: #ffffff !important; }
+body.light .recorder-header h4,
+body.light .recorder-card h4       { color: #1e2a35; }
+body.light .rec-live               { color: #c0392b; }
+body.light .word-count             { background: #dde1e7; color: #4a5568; }
+body.light .muted-text             { color: #606778; }
+body.light .placeholder-text       { color: #8a93a0; }
+body.light .perm-error             { background: #fef2f2; border-color: #fca5a5; color: #c0392b; }
+body.light .speaker-tip            { background: #fef9ec; color: #7a5c00; }
+body.light .fb-role-pill           { background: rgba(43,138,158,0.1); border-color: rgba(43,138,158,0.22); color: #1f6e7e; }
+body.light .fb-q-num               { background: rgba(43,138,158,0.1); color: #1f6e7e; }
+body.light .ih-count               { background: rgba(43,138,158,0.1); border-color: rgba(43,138,158,0.2); color: #1f6e7e; }
+body.light .sc-role-pill           { background: rgba(43,138,158,0.1); border-color: rgba(43,138,158,0.2); color: #1f6e7e; }
+body.light .fb-no-feedback         { color: #606778; }
+body.light .pr-degree              { color: #1f6e7e !important; }
+body.light .ih-view-btn            { background: rgba(43,138,158,0.08); border-color: rgba(43,138,158,0.22); color: #1f6e7e; }
+body.light .pr-tag                 { background: rgba(75,78,168,0.1); border-color: rgba(75,78,168,0.22); color: #3d3f9e; }
+body.light .diff-recommended       { background: #d97706; color: #fff; }
+body.light .recharts-cartesian-axis-tick text { fill: #606778 !important; }
+body.light .recharts-legend-item-text         { color: #4a5568 !important; }
+body.light .setup-step        { color: #606778; }
+body.light .setup-step.active { color: #1f6e7e; }
+body.light .setup-step.done   { color: #2e7d4f; }
+body.light .step-dot          { background: #dde1e7; color: #606778; }
+body.light .setup-step.active .step-dot { background: #1f6e7e; color: #fff; }
+body.light .setup-step.done   .step-dot { background: #2e7d4f; color: #fff; }
+body.light .step-line         { background: #d1d5db; }
+body.light .ih-back-btn       { color: #606778; }
+body.light .ih-back-btn:hover { color: #1f6e7e; }
+
+/* ===============================
+   SETUP ERROR
+================================ */
+body.light .setup-error {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* ===============================
+   LOADER
+================================ */
+body.light .loader-overlay {
+  background: rgba(240, 244, 248, 0.85);
+}
+
+body.light .loader-text {
+  color: var(--text-primary);
+}
+
+/* ===============================
+   CONTACT & ROLES PAGES
+================================ */
+body.light .ct-root,
+body.light .rp-root {
+  background: var(--bg-main);
+  color: var(--text-primary);
+}
+
+body.light .ct-orb,
+body.light .rp-orb {
+  opacity: 0.05;
+}
+
+/* ===============================
+   SCROLLBAR
+================================ */
+body.dark ::-webkit-scrollbar { width: 6px; }
+body.dark ::-webkit-scrollbar-track { background: #0f2027; }
+body.dark ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 3px; }
+
+body.light ::-webkit-scrollbar { width: 6px; }
+body.light ::-webkit-scrollbar-track { background: #e2e8f0; }
+body.light ::-webkit-scrollbar-thumb { background: rgba(0,188,212,0.35); border-radius: 3px; }
