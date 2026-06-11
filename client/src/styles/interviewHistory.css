@@ -281,6 +281,22 @@
   transform: translateX(2px);
 }
 
+/* Back button */
+.ih-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+}
+.ih-back-btn:hover { color: #00e5ff; }
+
 /* Empty / error */
 .ih-empty {
   text-align: center;
@@ -312,3 +328,100 @@
 @media (max-width: 480px) {
   .ih-stats-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ═══════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+═══════════════════════════════════════════ */
+body.light .ih-page {
+  background: linear-gradient(135deg, #e8eaed, #edeef1);
+  color: #1e2a35;
+}
+
+body.light .ih-hero h1 {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: #1e2a35;
+  color: #1e2a35;
+}
+
+body.light .ih-hero p { color: #606778; }
+
+body.light .ih-stat-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+body.light .ih-stat-card:hover { border-color: rgba(43,138,158,0.35); }
+
+body.light .ih-stat-value { color: #1f6e7e; }
+body.light .ih-stat-label { color: #606778; }
+
+body.light .ih-chart-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+body.light .ih-chart-header h3 { color: #1e2a35; }
+body.light .ih-chart-sub { color: #606778; }
+
+body.light .chart-tooltip {
+  background: #ffffff;
+  border-color: rgba(43,138,158,0.25);
+  color: #1e2a35;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+body.light .ct-label { color: #606778; }
+
+body.light .ih-table-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+body.light .ih-table-topbar {
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+body.light .ih-table-topbar h3 { color: #1e2a35; }
+
+body.light .ih-count {
+  background: rgba(43,138,158,0.1);
+  border-color: rgba(43,138,158,0.22);
+  color: #1f6e7e;
+}
+
+body.light .ih-select {
+  background: #f1f3f6;
+  border: 1.5px solid rgba(0,0,0,0.16);
+  color: #4a5568;
+}
+body.light .ih-select:focus { border-color: rgba(43,138,158,0.4); }
+
+body.light .ih-thead {
+  background: rgba(0,0,0,0.04);
+  color: #606778;
+}
+
+body.light .ih-row { border-top-color: rgba(0,0,0,0.07); }
+body.light .ih-row:hover { background: rgba(0,0,0,0.02); }
+
+body.light .ih-role { color: #1e2a35; }
+body.light .ih-role-dot { background: #1f6e7e; }
+body.light .ih-date { color: #606778; }
+body.light .ih-score-bar-track { background: rgba(0,0,0,0.07); }
+
+body.light .ih-view-btn {
+  background: rgba(43,138,158,0.07);
+  border-color: rgba(43,138,158,0.25);
+  color: #1f6e7e;
+}
+body.light .ih-view-btn:hover { background: rgba(43,138,158,0.14); }
+
+body.light .ih-back-btn { color: #606778; }
+body.light .ih-back-btn:hover { color: #1f6e7e; }
+
+body.light .ih-empty { color: #606778; }
+
+body.light .recharts-cartesian-axis-tick text { fill: #606778 !important; }
+body.light .recharts-legend-item-text { color: #4a5568 !important; }

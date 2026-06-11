@@ -54,7 +54,9 @@ body.dark .setup-role-pill {
   font-weight: 800;
   margin: 0 0 6px;
   letter-spacing: -0.5px;
+  color: #1e2a35;
 }
+body.dark .setup-title { color: #f8fafc; }
 
 .setup-sub {
   font-size: 0.88rem;
@@ -137,7 +139,7 @@ body.dark .section-label { color: #94a3b8; }
   gap: 8px;
   padding: 16px 14px;
   border-radius: 16px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid rgba(0,0,0,0.14);
   background: #f8fafc;
   cursor: pointer;
   text-align: left;
@@ -189,7 +191,9 @@ body.dark .diff-card:hover {
 .diff-label {
   font-size: 0.95rem;
   font-weight: 700;
+  color: #1e2a35;
 }
+body.dark .diff-label { color: #e0f7fa; }
 
 .diff-tag {
   font-size: 0.7rem;
@@ -217,7 +221,7 @@ body.dark .diff-desc { color: #94a3b8; }
   font-size: 0.65rem;
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.06);
   color: #64748b;
 }
 body.dark .diff-topic {
@@ -239,10 +243,11 @@ body.dark .diff-topic {
   gap: 14px;
   padding: 16px 18px;
   border-radius: 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid rgba(0,0,0,0.14);
   background: #f8fafc;
   cursor: pointer;
   transition: all 0.25s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 body.dark .device-card {
   background: #22343d;
@@ -261,8 +266,9 @@ body.dark .device-card:hover { border-color: #00e5ff; }
 .device-icon { font-size: 1.4rem; }
 
 .device-info { display: flex; flex-direction: column; }
-.device-info strong { font-size: 0.95rem; }
+.device-info strong { font-size: 0.95rem; color: #1e2a35; }
 .device-info small { font-size: 0.78rem; color: #64748b; }
+body.dark .device-info strong { color: #e0f7fa; }
 body.dark .device-info small { color: #94a3b8; }
 
 .device-toggle { margin-left: auto; }
@@ -322,7 +328,8 @@ body.dark .toggle-track { background: #374151; }
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
 }
 body.dark .ready-summary {
   background: #22343d;
@@ -335,19 +342,20 @@ body.dark .ready-summary {
   align-items: center;
   font-size: 0.88rem;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 body.dark .summary-row { border-color: #2e4450; }
 .summary-row:last-child { border: none; padding: 0; }
 
 .summary-label { color: #64748b; font-weight: 500; }
 body.dark .summary-label { color: #94a3b8; }
-.summary-value { font-weight: 600; }
+.summary-value { font-weight: 600; color: #1e2a35; }
+body.dark .summary-value { color: #e0f7fa; }
 
 /* ── TIPS ── */
 .ready-tips {
   background: rgba(99,102,241,0.05);
-  border: 1px solid rgba(99,102,241,0.15);
+  border: 1.5px solid rgba(99,102,241,0.2);
   border-radius: 14px;
   padding: 16px 18px;
   margin-bottom: 20px;
@@ -432,7 +440,7 @@ body.dark .nav-btn.primary.disabled { background: #2e4450; color: #4b6070; }
 .nav-btn.ghost {
   background: transparent;
   color: #64748b;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid rgba(0,0,0,0.15);
 }
 .nav-btn.ghost:hover { background: #f1f5f9; }
 body.dark .nav-btn.ghost { color: #94a3b8; border-color: #2e4450; }

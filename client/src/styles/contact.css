@@ -342,3 +342,110 @@
   .ct-form-row { grid-template-columns: 1fr; }
   .ct-form-card { padding: 1.25rem; }
 }
+
+/* ═══════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+═══════════════════════════════════════════ */
+body.light .ct-root {
+  background: #f2f3f5;
+  color: #1e2a35;
+}
+
+body.light .ct-bg { display: none; }
+
+body.light .ct-badge {
+  color: #6d28d9;
+  background: rgba(109,40,217,0.07);
+  border-color: rgba(109,40,217,0.2);
+}
+
+body.light .ct-title {
+  color: #1e2a35 !important;
+  -webkit-text-fill-color: #1e2a35 !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+body.light .ct-grad {
+  background: linear-gradient(135deg, #6d28d9, #2563eb, #0d9488) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+body.light .ct-sub { color: #4a5568; }
+
+/* Info cards */
+body.light .ct-info-card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-left: 3px solid var(--c, #0d9488);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+body.light .ct-info-card:hover {
+  background: #f8f9fb;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+body.light .ct-info-label { color: var(--c, #0d9488); }
+body.light .ct-info-val span { color: #4a5568; }
+
+/* Map */
+body.light .ct-map {
+  border: 1.5px solid rgba(0,0,0,0.14);
+}
+body.light .ct-map iframe {
+  filter: none;
+  opacity: 1;
+}
+
+/* Form card */
+body.light .ct-form-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(0,0,0,0.14);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+body.light .ct-form-title {
+  color: #1e2a35 !important;
+  -webkit-text-fill-color: #1e2a35 !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+body.light .ct-form-sub { color: #4a5568; }
+
+body.light .ct-field label { color: #4a5568; }
+
+body.light .ct-field input,
+body.light .ct-field textarea {
+  background: #f1f3f6;
+  border: 1.5px solid rgba(0,0,0,0.18);
+  color: #1e2a35;
+}
+body.light .ct-field input::placeholder,
+body.light .ct-field textarea::placeholder { color: #94a3b8; }
+body.light .ct-field input:focus,
+body.light .ct-field textarea:focus {
+  border-color: rgba(109,40,217,0.4);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(109,40,217,0.08);
+}
+
+body.light .ct-strip {
+  background: rgba(109,40,217,0.04);
+  border-color: rgba(109,40,217,0.12);
+}
+body.light .ct-strip span { color: #4a5568; }
+
+body.light .ct-success h3 { color: #0d9488 !important; }
+body.light .ct-success p  { color: #4a5568; }
+body.light .ct-success button {
+  border-color: rgba(0,0,0,0.15);
+  color: #4a5568;
+}
+body.light .ct-success button:hover {
+  border-color: rgba(0,0,0,0.25);
+  color: #1e2a35;
+}

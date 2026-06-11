@@ -659,3 +659,102 @@ body.dark ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-ra
 body.light ::-webkit-scrollbar { width: 6px; }
 body.light ::-webkit-scrollbar-track { background: #e2e8f0; }
 body.light ::-webkit-scrollbar-thumb { background: rgba(0,188,212,0.35); border-radius: 3px; }
+
+/* ================================================
+   PASTE AT THE BOTTOM OF: global.css
+   Makes all text visibly darker in light mode
+================================================ */
+
+body.light h1,
+body.light h2,
+body.light h3,
+body.light h4,
+body.light h5,
+body.light h6 {
+  color: #1e2a35 !important;
+  -webkit-text-fill-color: #1e2a35 !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+body.light p,
+body.light span,
+body.light label,
+body.light li,
+body.light td,
+body.light th,
+body.light div {
+  color: #1e2a35;
+}
+
+body.light .muted,
+body.light small,
+body.light .sub,
+body.light .hint,
+body.light .caption {
+  color: #4a5568 !important;
+}
+
+/* ================================================
+   PASTE AT THE BOTTOM OF: global.css
+   Darker card/box borders in light mode
+================================================ */
+
+body.light .db-card,
+body.light .stat-card,
+body.light .glass-card,
+body.light .diff-card,
+body.light .role-card,
+body.light .feature-card,
+body.light .step-card,
+body.light .setup-card,
+body.light .device-card,
+body.light .fb-card,
+body.light .fb-q-card,
+body.light .fb-hero,
+body.light .sc-front,
+body.light .sc-back,
+body.light .ih-stat-card,
+body.light .ih-chart-card,
+body.light .ih-table-card,
+body.light .pr-section,
+body.light .pr-card,
+body.light .pr-add-card,
+body.light .pr-completeness,
+body.light .pr-stats,
+body.light .pr-avatar-wrap,
+body.light .ready-summary,
+body.light .recorder-card,
+body.light .audio-mode-btn,
+body.light .ct-info-card,
+body.light .ct-contact-card,
+body.light input,
+body.light textarea,
+body.light select,
+body.light .pr-input,
+body.light .pr-textarea,
+body.light .ih-select {
+  border: 1.5px solid rgba(0, 0, 0, 0.18) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Quick action / banner cards */
+body.light .db-action-card,
+body.light .db-banner,
+body.light .ready-tips {
+  border: 1.5px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Input fields specifically */
+body.light input,
+body.light textarea,
+body.light select {
+  border: 1.5px solid rgba(0, 0, 0, 0.22) !important;
+}
+
+body.light input:focus,
+body.light textarea:focus {
+  border-color: rgba(43, 138, 158, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(43, 138, 158, 0.12) !important;
+}
