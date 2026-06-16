@@ -45,7 +45,7 @@ const ScoreRing = ({ score, color }) => {
 const ScoreCard = () => {
   const navigate    = useNavigate();
   const { role }    = useParams();
-  const { results } = useInterview();
+  const { results, retakeSession } = useInterview();
   const [flipped, setFlipped] = useState(false);
 
   const score      = results?.totalScore ?? 0;

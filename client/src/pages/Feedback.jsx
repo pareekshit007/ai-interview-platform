@@ -82,7 +82,7 @@ const ROLE_LABELS = {
 const Feedback = () => {
   const navigate = useNavigate();
   const { role }  = useParams();
-  const { results } = useInterview();
+  const { results, retakeSession, loading } = useInterview();
 
   const sessionFeedback = results?.sessionFeedback || "";
   const parsed          = parseFeedback(sessionFeedback);
@@ -235,7 +235,7 @@ const Feedback = () => {
           <button className="fb-btn fb-btn-primary" onClick={() => navigate(`/scorecard/${role}`)}>
             📋 View Scorecard
           </button>
-          <button className="fb-btn fb-btn-secondary" onClick={() => navigate(`/interview-setup/${role}`)}>
+          <button className="fb-btn fb-btn-secondary" onClick={async () => { await retakeSession(); navigate(`/interview-room/${role}`); }}>
             🔁 Retake Interview
           </button>
           <button className="fb-btn fb-btn-ghost" onClick={() => navigate("/dashboard")}>

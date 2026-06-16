@@ -5,26 +5,6 @@ import { analyzeAnswer } from "../utils/analyzeAnswer";
 
 const InterviewContext = createContext();
 
-/** Extract a plain-text resume context object from localStorage user profile */
-const getResumeContext = () => {
-  try {
-    const stored = JSON.parse(localStorage.getItem("user"));
-    if (!stored) return null;
-
-    const ctx = {};
-    if (stored.skills?.length)           ctx.skills          = stored.skills;
-    if (stored.experience?.trim())       ctx.experience      = stored.experience.trim();
-    if (stored.certificationsText?.trim()) ctx.certifications = stored.certificationsText.trim();
-    if (stored.projectsText?.trim())     ctx.projects        = stored.projectsText.trim();
-    if (stored.summary?.trim())          ctx.summary         = stored.summary.trim();
-
-    // Only return context if there's something useful
-    return Object.keys(ctx).length > 0 ? ctx : null;
-  } catch {
-    return null;
-  }
-};
-
 export const InterviewProvider = ({ children }) => {
   const [questions,         setQuestions]         = useState([]);
   const [currentIndex,      setCurrentIndex]      = useState(0);
@@ -37,9 +17,10 @@ export const InterviewProvider = ({ children }) => {
   const [sessionFeedback,   setSessionFeedback]   = useState("");
   const [currentRole,       setCurrentRole]       = useState("");
   const [currentDifficulty, setCurrentDifficulty] = useState("medium");
-  const [usingResumeContext, setUsingResumeContext] = useState(false);
 
   const startInterviewSession = async (role, difficulty = "medium") => {
+    // ✅ Reset everything immediately — before any API call
+    // This prevents stale currentIndex from a previous session
     setCurrentIndex(0);
     setAnswers([]);
     setScores([]);
@@ -52,12 +33,8 @@ export const InterviewProvider = ({ children }) => {
     setCurrentDifficulty(difficulty);
     setLoading(true);
 
-    // Pull resume/profile context from saved profile
-    const resumeContext = getResumeContext();
-    setUsingResumeContext(!!resumeContext);
-
     try {
-      const { questions: qs }     = await fetchQuestions({ role, difficulty, count: 5, resumeContext });
+      const { questions: qs }     = await fetchQuestions({ role, difficulty, count: 5 });
       const { interviewId: id }   = await startInterview({ role, difficulty, questions: qs });
       setQuestions(qs);
       setInterviewId(id);
@@ -69,6 +46,36 @@ export const InterviewProvider = ({ children }) => {
   };
 
   const startInterview_legacy = (role) => startInterviewSession(role);
+
+  // Retake — reuse the same questions, just reset progress
+  const retakeSession = async () => {
+    if (!questions.length) return;
+    const prevQuestions   = [...questions];
+    const prevRole        = currentRole;
+    const prevDifficulty  = currentDifficulty;
+
+    // Reset progress only, keep questions
+    setCurrentIndex(0);
+    setAnswers([]);
+    setScores([]);
+    setFinished(false);
+    setSessionFeedback("");
+    setInterviewId(null);
+    setError("");
+    setLoading(true);
+
+    try {
+      const { interviewId: id } = await startInterview({
+        role: prevRole, difficulty: prevDifficulty, questions: prevQuestions,
+      });
+      setQuestions(prevQuestions);
+      setInterviewId(id);
+    } catch (err) {
+      setError(err.message || "Failed to retake interview");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const nextQuestion = (transcript, scoreOverride) => {
     const analysis = analyzeAnswer(transcript);
@@ -132,9 +139,9 @@ export const InterviewProvider = ({ children }) => {
   return (
     <InterviewContext.Provider value={{
       questions, currentIndex, answers, scores, finished,
-      loading, error, interviewId, results, usingResumeContext,
+      loading, error, interviewId, results,
       startInterview: startInterview_legacy,
-      startInterviewSession, nextQuestion, finishInterview,
+      startInterviewSession, retakeSession, nextQuestion, finishInterview,
     }}>
       {children}
     </InterviewContext.Provider>
