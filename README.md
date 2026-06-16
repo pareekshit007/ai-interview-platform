@@ -2,6 +2,8 @@
 
 > Practice real interview questions, get instant AI-powered feedback, and walk into your next interview with confidence.
 
+**🌐 Live Demo → [ai-interview-platform-eta-green.vercel.app](https://ai-interview-platform-eta-green.vercel.app)**
+
 ---
 
 ## ✨ What It Does
@@ -217,4 +219,3 @@ The history page shows all past interviews with recharts-powered visualizations 
 - [ ] Peer interview mode (2-player)
 - [ ] Email reports after each session
 - [ ] Mobile app (React Native)
-
