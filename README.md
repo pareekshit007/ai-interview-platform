@@ -218,8 +218,3 @@ The history page shows all past interviews with recharts-powered visualizations 
 - [ ] Email reports after each session
 - [ ] Mobile app (React Native)
 
----
-
-## 📄 License
-
-MIT © 2025
