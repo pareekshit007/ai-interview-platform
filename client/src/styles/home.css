@@ -1,20 +1,9 @@
-/* ================= GLOBAL ================= */
-* {
-  box-sizing: border-box;
-}
+/* ================= RESET (home-scoped) ================= */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
-  background: #ffffff;
-  color: #222;
-}
-
-/* ================= HERO (UNCHANGED) ================= */
+/* ================= HERO ================= */
+/* Dark mode (default) — with bg image */
 .hero {
   min-height: 92vh;
   display: flex;
@@ -30,6 +19,15 @@ body {
   color: #fff;
 }
 
+/* Light mode — softer gradient, no image */
+body.light .hero {
+  background:
+    radial-gradient(circle at top left, rgba(43, 138, 158, 0.12), transparent 45%),
+    linear-gradient(135deg, #7e878b, #a9c4cd, #556970);
+  background-size: cover;
+  background-position: center;
+}
+
 .hero-content {
   max-width: 560px;
   animation: fadeInUp 1s ease forwards;
@@ -43,28 +41,31 @@ body {
   background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(10px);
   margin-bottom: 18px;
+  color: #fff;
 }
 
 .hero-content h1 {
   font-size: 52px;
   line-height: 1.15;
   margin-bottom: 18px;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
 }
 
 .hero-content h1 span {
-  color: #ffcc00;
+  color: #ffcc00 !important;
+  -webkit-text-fill-color: #ffcc00 !important;
 }
 
 .hero-content p {
   font-size: 18px;
   opacity: 0.92;
   margin-bottom: 32px;
+  color: #fff !important;
 }
 
-.hero-actions {
-  display: flex;
-  gap: 18px;
-}
+.hero-actions { display: flex; gap: 18px; }
 
 .hero-btn {
   padding: 14px 32px;
@@ -77,7 +78,8 @@ body {
 
 .hero-btn.primary {
   background: linear-gradient(135deg, #ffcc00, #ffb703);
-  color: #000;
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important;
   box-shadow: 0 12px 35px rgba(255, 204, 0, 0.35);
 }
 
@@ -88,7 +90,8 @@ body {
 
 .hero-btn.secondary {
   background: transparent;
-  color: #fff;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
   border: 2px solid rgba(255, 255, 255, 0.7);
 }
 
@@ -105,53 +108,28 @@ body {
 /* ================= FEATURES ================= */
 .features {
   position: relative;
-  background: linear-gradient(
-    120deg,
-    #0f2027,
-    #203a43,
-    #2c5364
-  );
-  background-size: 300% 300%;
-  animation: gradientMove 12s ease infinite;
   padding: 100px 40px;
   overflow: hidden;
+  background: var(--bg-secondary);
+  transition: background 0.3s ease;
 }
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-
-.features::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.85); /* light overlay */
-}
-
-.features > * {
-  position: relative;
-  z-index: 1;
-}
-
-.features h2 {
-  font-size: 38px;
-  margin-bottom: 10px;
-}
-
-.features-subtitle {
-  color: #555;
-  margin-bottom: 60px;
-  font-size: 16px;
-}
-
 
 .features-container {
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+}
+
+.features h2 {
+  font-size: 38px;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.features-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 60px;
+  font-size: 16px;
 }
 
 .features-grid {
@@ -161,10 +139,9 @@ body {
   align-items: stretch;
 }
 
-
-
 .feature-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 18px;
   padding: 35px 28px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
@@ -177,61 +154,34 @@ body {
   position: absolute;
   inset: -1px;
   border-radius: 18px;
-  background: linear-gradient(
-    120deg,
-    #00c6ff,
-    #0072ff,
-    #00f2fe
-  );
+  background: linear-gradient(120deg, var(--accent), #0072ff, #00f2fe);
   opacity: 0;
   z-index: -1;
   transition: opacity 0.35s ease;
 }
 
-.feature-card:hover::before {
-  opacity: 1;
-}
+.feature-card:hover::before { opacity: 1; }
 
 .feature-card:hover {
   transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
 }
 
+.feature-card h3 { color: var(--text-primary); margin-bottom: 10px; }
+.feature-card p  { color: var(--text-secondary); margin: 0; }
 
 .feature-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  background: linear-gradient(135deg, #00e5ff, #7c4dff);
+  background: linear-gradient(135deg, var(--accent), #7c4dff);
   color: #fff;
   font-size: 22px;
-
   margin-bottom: 18px;
 }
-
-
-
-.feature-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
-}
-
-@media (prefers-color-scheme: dark) {
-  .features {
-    background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475");
-    background-size: cover;
-    background-position: center;
-  }
-
-  .features::before {
-    background: rgba(10, 15, 20, 0.88); /* dark overlay */
-  }
-}
-
 
 /* ================= COUNTERS ================= */
 .counters {
@@ -239,12 +189,25 @@ body {
   justify-content: center;
   gap: 40px;
   padding: 80px 40px;
-  background: transparent;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* dark overlay over the bg image so text always readable */
+.counters::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
 }
 
 .counter-card {
+  position: relative;
+  z-index: 1;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   padding: 40px 50px;
   min-width: 220px;
@@ -258,26 +221,30 @@ body {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
 }
 
+/* these always stay white — bg image is always dark */
 .counter-card h3 {
   font-size: 2.6rem;
   font-weight: 700;
-  color: #00e5ff;
+  color: var(--accent) !important;
+  -webkit-text-fill-color: var(--accent) !important;
+  background: none !important;
   margin-bottom: 10px;
 }
 
 .counter-card p {
   font-size: 1rem;
   opacity: 0.9;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
 }
 
-/* ================= WAVEFORM SECTION ================= */
+/* ================= WAVEFORM ================= */
 .waveform-section {
   padding: 100px 40px;
-  text-align: center;
-  background: radial-gradient(circle at top, #e0f7fa, #ffffff);
-
+  background: var(--bg-main);
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 .waveform-container {
@@ -289,19 +256,15 @@ body {
   gap: 60px;
 }
 
-.waveform-left {
-  text-align: left;
-}
+.waveform-left { text-align: left; }
 
 .waveform-left h2 {
   font-size: 42px;
   margin: 18px 0;
+  color: var(--text-primary);
 }
 
-.waveform-left p {
-  max-width: 480px;
-  opacity: 0.85;
-}
+.waveform-left p { color: var(--text-secondary); max-width: 480px; }
 
 .waveform-right {
   display: flex;
@@ -309,28 +272,16 @@ body {
   align-items: center;
 }
 
-
-.waveform-header {
-  max-width: 700px;
-  margin: 0 auto 40px;
-}
-
 .wave-badge {
   display: inline-block;
   padding: 6px 14px;
   border-radius: 20px;
-  background: rgba(0, 229, 255, 0.15);
-  color: #00e5ff;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.85rem;
   margin-bottom: 12px;
 }
 
-.waveform-header p {
-  opacity: 0.85;
-  margin-top: 10px;
-}
-
-/* Wave animation */
 .waveform-box {
   display: flex;
   justify-content: center;
@@ -343,7 +294,7 @@ body {
 .waveform-box span {
   width: 8px;
   height: 30px;
-  background: linear-gradient(180deg, #00e5ff, #7c4dff);
+  background: linear-gradient(180deg, var(--accent), #7c4dff);
   border-radius: 6px;
   animation: waveMove 1.2s ease-in-out infinite;
 }
@@ -358,61 +309,64 @@ body {
 
 @keyframes waveMove {
   0%, 100% { height: 30px; }
-  50% { height: 100px; }
+  50%       { height: 100px; }
 }
 
-/* Stats below waveform */
 .waveform-stats {
   display: flex;
-  justify-content: center;
-  gap: 40px;
+  justify-content: flex-start;
+  gap: 16px;
   margin-top: 30px;
+  flex-wrap: wrap;
 }
 
 .waveform-stats div {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   padding: 16px 22px;
   border-radius: 14px;
-  backdrop-filter: blur(10px);
-  min-width: 160px;
+  min-width: 130px;
+  transition: background 0.3s ease;
 }
 
 .waveform-stats h4 {
-  font-size: 0.95rem;
-  margin-bottom: 6px;
+  font-size: 0.85rem;
+  margin: 0 0 6px;
+  color: var(--text-secondary);
 }
 
 .waveform-stats span {
-  color: #00e5ff;
+  color: var(--accent);
   font-weight: 600;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .waveform-container {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .waveform-left {
-    text-align: center;
-  }
-
-  .waveform-stats {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-}
-
-
-
 /* ================= TESTIMONIALS ================= */
+/* Always dark-bg section */
 .testimonials {
   padding: 100px 10%;
   text-align: center;
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  color: #fff;
+  background-size: cover;
+  background-position: center;
   border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonials::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  border-radius: 24px;
+}
+
+.testimonials > * { position: relative; z-index: 1; }
+
+.testimonials h2 {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
 }
 
 .testimonial-grid {
@@ -428,11 +382,12 @@ body {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
 }
 
 .testimonial-card::before {
-  content: "“";
+  content: "\201C";
   font-size: 60px;
   position: absolute;
   top: -20px;
@@ -440,8 +395,20 @@ body {
   color: #ffcc00;
 }
 
-/* ================= COMPANIES (MODERN) ================= */
-/* ================= COMPANIES (MODERN SLIDER) ================= */
+.testimonial-card p {
+  color: rgba(255, 255, 255, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.testimonial-card h4 {
+  color: var(--accent) !important;
+  -webkit-text-fill-color: var(--accent) !important;
+  background: none !important;
+  margin-bottom: 0;
+}
+
+/* ================= COMPANIES ================= */
+/* Dark mode (default) */
 .companies {
   padding: 110px 0;
   text-align: center;
@@ -450,26 +417,32 @@ body {
     linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   color: #fff;
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 .companies h2 {
   font-size: 36px;
   margin-bottom: 10px;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
+  transition: color 0.3s ease;
 }
 
 .companies-subtitle {
   opacity: 0.85;
   margin-bottom: 60px;
+  color: rgba(255, 255, 255, 0.8) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+  transition: color 0.3s ease;
 }
 
-/* slider wrapper */
 .companies-slider {
   width: 100%;
   overflow: hidden;
   position: relative;
 }
 
-/* gradient fade edges */
 .companies-slider::before,
 .companies-slider::after {
   content: "";
@@ -478,8 +451,10 @@ body {
   width: 120px;
   height: 100%;
   z-index: 2;
+  transition: background 0.3s ease;
 }
 
+/* dark mode fade edges */
 .companies-slider::before {
   left: 0;
   background: linear-gradient(to right, #0f2027, transparent);
@@ -490,7 +465,6 @@ body {
   background: linear-gradient(to left, #2c5364, transparent);
 }
 
-/* sliding row */
 .companies-track {
   display: flex;
   gap: 80px;
@@ -498,64 +472,107 @@ body {
   animation: slideCompanies 28s linear infinite;
 }
 
-/* company text */
 .companies-track span {
   font-size: 22px;
   font-weight: 600;
   letter-spacing: 0.5px;
   opacity: 0.85;
   white-space: nowrap;
-  transition: all 0.3s ease;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
-/* subtle glow on hover */
 .companies-track span:hover {
   opacity: 1;
-  color: #ffcc00;
+  color: #ffcc00 !important;
+  -webkit-text-fill-color: #ffcc00 !important;
   text-shadow: 0 0 12px rgba(255, 204, 0, 0.6);
 }
 
-/* animation */
 @keyframes slideCompanies {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
+/* ---- Light mode overrides ---- */
+body.light .companies {
+  background:
+    radial-gradient(circle at top left, rgba(43, 138, 158, 0.12), transparent 45%),
+    linear-gradient(135deg, #7e878b, #a9c4cd, #556970);
+}
+
+body.light .companies h2 {
+  color: #1e2a35 !important;
+  -webkit-text-fill-color: #1e2a35 !important;
+}
+
+body.light .companies-subtitle {
+  color: rgba(30, 42, 53, 0.75) !important;
+  -webkit-text-fill-color: rgba(30, 42, 53, 0.75) !important;
+}
+
+/* fade edges match light bg */
+body.light .companies-slider::before {
+  background: linear-gradient(to right, #b4c0c5, transparent);
+}
+
+body.light .companies-slider::after {
+  background: linear-gradient(to left, #84a2ae, transparent);
+}
+
+body.light .companies-track span {
+  color: #1e2a35 !important;
+  -webkit-text-fill-color: #1e2a35 !important;
+}
+
+body.light .companies-track span:hover {
+  color: #1f6e7e !important;
+  -webkit-text-fill-color: #1f6e7e !important;
+  text-shadow: 0 0 12px rgba(43, 138, 158, 0.5);
+}
 
 /* ================= FINAL CTA ================= */
+/* Always dark branded section */
 .final-cta {
   padding: 110px 10%;
   text-align: center;
   background: linear-gradient(135deg, #203a43, #2c5364);
+  background-size: cover;
+  background-position: center;
   border-radius: 24px;
-  color: #fff;
+  position: relative;
+  overflow: hidden;
 }
+
+.final-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 24px;
+}
+
+.final-cta > * { position: relative; z-index: 1; }
 
 .final-cta h2 {
   margin-bottom: 30px;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
 }
 
 /* ================= ANIMATIONS ================= */
 @keyframes float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-18px); }
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-18px); }
   100% { transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 900px) {
@@ -569,169 +586,22 @@ body {
     margin-top: 40px;
   }
 
-  .hero-actions {
-    justify-content: center;
-  }
+  .hero-actions { justify-content: center; }
 
-  .features-grid,
-  .testimonial-grid,
   .counters {
     flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .waveform-container {
+    grid-template-columns: 1fr;
     text-align: center;
   }
 
-  .counters {
-    margin: 30px 0;
-    gap: 30px;
-  }
+  .waveform-left { text-align: center; }
+  .waveform-stats { justify-content: center; }
+  .waveform-box { height: 80px; }
 
-  .waveform-box {
-    height: 80px;
-  }
-}
-/* ================= GLOBAL ================= */
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
-  background: #ffffff;
-  color: #222;
-}
-
-/* ================= HERO (UNCHANGED) ================= */
-.hero {
-  min-height: 92vh;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 70px 10%;
-  background:
-    radial-gradient(circle at top left, rgba(255, 204, 0, 0.18), transparent 45%),
-    linear-gradient(135deg, #0f2027, #203a43, #2c5364),
-    url("https://images.unsplash.com/photo-1581093588401-12c3be1f8c91?auto=format&fit=crop&w=1600&q=80");
-  background-size: cover;
-  background-position: center;
-  color: #fff;
-}
-
-.hero-content {
-  max-width: 560px;
-  animation: fadeInUp 1s ease forwards;
-}
-
-.hero-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 50px;
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(10px);
-  margin-bottom: 18px;
-}
-
-.hero-content h1 {
-  font-size: 52px;
-  line-height: 1.15;
-  margin-bottom: 18px;
-}
-
-.hero-content h1 span {
-  color: #ffcc00;
-}
-
-.hero-content p {
-  font-size: 18px;
-  opacity: 0.92;
-  margin-bottom: 32px;
-}
-
-/* ================= FEATURES ================= */
-.features::before {
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.feature-card {
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.features-subtitle {
-  color: #555;
-}
-
-/* ================= COUNTERS ================= */
-.counter-card {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* ================= WAVEFORM ================= */
-.waveform-section {
-  background: radial-gradient(circle at top, #e0f7fa, #ffffff);
-}
-
-.waveform-stats div {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* ================= TESTIMONIALS ================= */
-.testimonial-card {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* ================= FINAL CTA ================= */
-.final-cta {
-  background: linear-gradient(135deg, #203a43, #2c5364);
-}
-
-/* =====================================================
-   🌗 THEME OVERRIDES (ONLY ADDITION – NO CHANGES ABOVE)
-===================================================== */
-
-body.dark {
-  background: #0b0b0b;
-  color: #f5f5f5;
-}
-
-/* Features section */
-body.dark .features::before {
-  background: rgba(10, 15, 20, 0.88);
-}
-
-body.dark .features-subtitle {
-  color: #b0b0b0;
-}
-
-body.dark .feature-card {
-  background: rgba(18, 18, 18, 0.92);
-  color: #f5f5f5;
-}
-
-/* Counters */
-body.dark .counter-card {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-/* Waveform */
-body.dark .waveform-section {
-  background: radial-gradient(circle at top, #020617, #000000);
-}
-
-body.dark .waveform-stats div {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-/* Testimonials */
-body.dark .testimonial-card {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-/* Global text tuning */
-body.dark p {
-  color: #cfcfcf;
+  .testimonial-grid { grid-template-columns: 1fr; }
 }

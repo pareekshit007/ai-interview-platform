@@ -89,7 +89,7 @@
 }
 
 /* ===============================
-   ICON BUTTONS
+   ICON BUTTONS (base)
 ================================ */
 .nav-icon-btn {
   background: transparent;
@@ -111,14 +111,51 @@
   color: var(--text-primary);
 }
 
-.theme-icon {
-  font-size: 17px;
+/* ===============================
+   THEME TOGGLE PILL
+================================ */
+.theme-toggle {
+  /* override base nav-icon-btn box sizing */
+  width: auto;
+  height: 34px;
+  padding: 0 12px 0 9px;
+  border-radius: 999px;
+  gap: 6px;
+
+  /* visual */
+  background: var(--glass-bg);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+
+  transition: background 0.25s ease, border-color 0.25s ease,
+              color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.theme-toggle .theme-icon {
+  font-size: 15px;
   line-height: 1;
+  flex-shrink: 0;
   transition: transform 0.4s ease;
 }
 
 .theme-toggle:hover .theme-icon {
-  transform: rotate(30deg) scale(1.15);
+  transform: rotate(20deg) scale(1.15);
+}
+
+.theme-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 /* ===============================
@@ -737,6 +774,18 @@
 
   .nav-auth-btns {
     display: none;
+  }
+
+  /* hide text label on small screens, keep just the icon */
+  .theme-toggle .theme-label {
+    display: none;
+  }
+
+  .theme-toggle {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 10px;
   }
 
   .notif-dropdown {

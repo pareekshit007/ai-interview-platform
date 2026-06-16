@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import { api } from "../../services/api";
 import "../../styles/navbar.css";
 
 const Navbar = () => {
@@ -8,16 +9,18 @@ const Navbar = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
-  const isAuth = !!localStorage.getItem("isAuthenticated");
+  const isAuth   = !!localStorage.getItem("isAuthenticated");
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
+  const [menuOpen,      setMenuOpen]      = useState(false);
+  const [dropdownOpen,  setDropdownOpen]  = useState(false);
+  const [scrolled,      setScrolled]      = useState(false);
+  const [notifOpen,     setNotifOpen]     = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading,  setNotifLoading]  = useState(false);
 
   const dropdownRef = useRef(null);
-  const notifRef = useRef(null);
+  const notifRef    = useRef(null);
 
   // Scroll shadow
   useEffect(() => {
@@ -26,7 +29,7 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close menu on route change
+  // Close menus on route change
   useEffect(() => {
     setMenuOpen(false);
     setDropdownOpen(false);
@@ -37,11 +40,30 @@ const Navbar = () => {
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+      if (notifRef.current   && !notifRef.current.contains(e.target))    setNotifOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Fetch real notifications from backend
+  const fetchNotifications = async () => {
+    if (!isAuth) return;
+    setNotifLoading(true);
+    try {
+      const data = await api.get("/notifications");
+      setNotifications(data);
+    } catch {
+      // silently fail — don't break navbar
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  // Auto-fetch on every route change
+  useEffect(() => { fetchNotifications(); }, [location.pathname]);
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -54,14 +76,6 @@ const Navbar = () => {
     if (!name) return "U";
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   };
-
-  const notifications = [
-    { id: 1, icon: "🎯", text: "Your last interview scored 82%", time: "2h ago", unread: true },
-    { id: 2, icon: "📋", text: "New Frontend Engineer role added", time: "1d ago", unread: true },
-    { id: 3, icon: "✅", text: "Profile updated successfully", time: "3d ago", unread: false },
-  ];
-
-  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <>
@@ -101,7 +115,12 @@ const Navbar = () => {
               <div className="nav-notif-wrap" ref={notifRef}>
                 <button
                   className="nav-icon-btn notif-btn"
-                  onClick={() => { setNotifOpen((p) => !p); setDropdownOpen(false); }}
+                  onClick={() => {
+                    const next = !notifOpen;
+                    setNotifOpen(next);
+                    setDropdownOpen(false);
+                    if (next) fetchNotifications();
+                  }}
                   aria-label="Notifications"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -120,17 +139,42 @@ const Navbar = () => {
                       <span className="notif-count">{unreadCount} new</span>
                     </div>
                     <ul className="notif-list">
-                      {notifications.map((n) => (
-                        <li key={n.id} className={`notif-item ${n.unread ? "unread" : ""}`}>
-                          <span className="notif-icon">{n.icon}</span>
+                      {notifLoading ? (
+                        <li className="notif-item">
+                          <span className="notif-icon">⏳</span>
+                          <div className="notif-body"><p>Loading…</p></div>
+                        </li>
+                      ) : notifications.length === 0 ? (
+                        <li className="notif-item">
+                          <span className="notif-icon">🔔</span>
                           <div className="notif-body">
-                            <p>{n.text}</p>
-                            <span>{n.time}</span>
+                            <p>No notifications yet</p>
+                            <span>Complete an interview to get started</span>
                           </div>
                         </li>
-                      ))}
+                      ) : (
+                        notifications.map((n) => (
+                          <li
+                            key={n.id}
+                            className={`notif-item ${n.unread ? "unread" : ""}`}
+                            onClick={() => {
+                              if (n.interviewId) {
+                                setNotifOpen(false);
+                                navigate(`/interview/${n.interviewId}`);
+                              }
+                            }}
+                            style={{ cursor: n.interviewId ? "pointer" : "default" }}
+                          >
+                            <span className="notif-icon">{n.icon}</span>
+                            <div className="notif-body">
+                              <p>{n.text}</p>
+                              <span>{n.time}</span>
+                            </div>
+                          </li>
+                        ))
+                      )}
                     </ul>
-                    <Link to="/dashboard" className="notif-footer">View all →</Link>
+                    <Link to="/interview-history" className="notif-footer">View all →</Link>
                   </div>
                 )}
               </div>
