@@ -12,7 +12,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const allowed = ["name","phone","college","degree","organization",
-                     "linkedin","github","summary","skills","profilePic"];
+                     "linkedin","github","summary","skills","profilePic","resumeUrl"];
     const updates = {};
     allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
 

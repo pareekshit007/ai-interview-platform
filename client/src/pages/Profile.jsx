@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/common/Loader";
+import { getProfile, updateProfile, uploadResume } from "../services/userService";
 import "../styles/profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
 
   const skillOptions = [
     "HTML","CSS","JavaScript","React","Node.js","Express",
@@ -15,54 +17,48 @@ const Profile = () => {
   ];
 
   const [user, setUser] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    college: "",
-    degree: "",
-    organization: "",
-    linkedin: "",
-    github: "",
-    skills: [],
-    profilePic: "",
-    summary: "",
-    experience: "",
-    projectsText: "",
-    certificationsText: "",
-    offerLetters: [],
-    certificates: [],
-    projectRepos: [],
-    // Resume upload
-    resumeFile: null,  // { name, data } base64
+    name: "", email: "", phone: "", college: "", degree: "",
+    organization: "", linkedin: "", github: "", skills: [],
+    profilePic: "", summary: "", experience: "", projectsText: "",
+    certificationsText: "", offerLetters: [], certificates: [],
+    projectRepos: [], resumeUrl: "",
   });
 
   const [skillInput, setSkillInput] = useState("");
   const [repoName, setRepoName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
 
-  // Computed: does the profile have AI context?
   const hasAIContext = !!(
-    user.skills.length > 0 ||
-    user.experience?.trim() ||
-    user.certificationsText?.trim() ||
-    user.projectsText?.trim() ||
-    user.summary?.trim() ||
-    user.resumeFile
+    user.skills.length > 0 || user.experience?.trim() ||
+    user.certificationsText?.trim() || user.projectsText?.trim() ||
+    user.summary?.trim() || user.resumeUrl
   );
 
+  // Load profile from DB on mount
   useEffect(() => {
     const isAuth = localStorage.getItem("isAuthenticated");
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (!isAuth || !storedUser) { navigate("/login"); return; }
-    setUser(prev => ({
-      ...prev,
-      ...storedUser,
-      skills: storedUser.skills || [],
-      offerLetters: storedUser.offerLetters || [],
-      certificates: storedUser.certificates || [],
-      projectRepos: storedUser.projectRepos || [],
-      resumeFile: storedUser.resumeFile || null,
-    }));
+    if (!isAuth) { navigate("/login"); return; }
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await getProfile();
+        setUser(prev => ({
+          ...prev,
+          ...data,
+          skills: data.skills || [],
+          offerLetters: data.offerLetters || [],
+          certificates: data.certificates || [],
+          projectRepos: data.projectRepos || [],
+          resumeUrl: data.resumeUrl || "",
+        }));
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, [navigate]);
 
   const handleChange = e => {
@@ -80,16 +76,21 @@ const Profile = () => {
   };
 
   /* ---------- RESUME UPLOAD ---------- */
-  const handleResumeUpload = e => {
+  const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      setUser(prev => ({ ...prev, resumeFile: { name: file.name, data: reader.result } }));
-    reader.readAsDataURL(file);
+    try {
+      setResumeUploading(true);
+      const data = await uploadResume(file);
+      setUser(prev => ({ ...prev, resumeUrl: data.resumeUrl }));
+    } catch (err) {
+      alert("Resume upload failed: " + err.message);
+    } finally {
+      setResumeUploading(false);
+    }
   };
 
-  const removeResume = () => setUser(prev => ({ ...prev, resumeFile: null }));
+  const removeResume = () => setUser(prev => ({ ...prev, resumeUrl: "" }));
 
   /* ---------- FILE UPLOAD GENERIC ---------- */
   const readFiles = (files, key) => {
@@ -139,21 +140,25 @@ const Profile = () => {
   /* ---------- SAVE ---------- */
   const normalizeUrl = url => url && !url.startsWith("http") ? `https://${url}` : url;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setLoading(true);
     setSaveSuccess(false);
-    const updated = {
-      ...user,
-      linkedin: normalizeUrl(user.linkedin),
-      github: normalizeUrl(user.github),
-      skills: user.skills.map(s => s.toLowerCase())
-    };
-    setTimeout(() => {
-      localStorage.setItem("user", JSON.stringify(updated));
-      setLoading(false);
+    try {
+      const updated = {
+        ...user,
+        linkedin: normalizeUrl(user.linkedin),
+        github: normalizeUrl(user.github),
+        skills: user.skills.map(s => s.toLowerCase()),
+      };
+      const saved = await updateProfile(updated);
+      localStorage.setItem("user", JSON.stringify(saved));
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    }, 500);
+    } catch (err) {
+      alert("Save failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleKeyDown = e => {
@@ -166,7 +171,7 @@ const Profile = () => {
 
   return (
     <>
-      {loading && <Loader text="Saving profile..." />}
+      {loading && <Loader text="Loading..." />}
 
       <div className="profile-page">
 
@@ -216,7 +221,7 @@ const Profile = () => {
               {user.experience?.trim() && <span className="ai-pill">✓ Experience</span>}
               {user.certificationsText?.trim() && <span className="ai-pill">✓ Certifications</span>}
               {user.projectsText?.trim() && <span className="ai-pill">✓ Projects</span>}
-              {user.resumeFile && <span className="ai-pill">✓ Resume</span>}
+              {user.resumeUrl && <span className="ai-pill">✓ Resume</span>}
             </div>
           )}
         </div>
@@ -226,19 +231,20 @@ const Profile = () => {
           {/* RESUME UPLOAD */}
           <Section title="📄 Resume" badge="AI Uses This">
             <p className="section-hint">
-              Upload your resume so the AI can ask relevant questions about your background, skills, and experience.
+              Upload your resume so the AI can ask relevant questions about your background.
             </p>
-            {user.resumeFile ? (
+            {resumeUploading && <p style={{color:"var(--accent)"}}>⏳ Uploading resume...</p>}
+            {user.resumeUrl ? (
               <div className="resume-uploaded">
                 <div className="resume-file-info">
                   <span className="resume-icon">📑</span>
                   <div>
-                    <strong>{user.resumeFile.name}</strong>
-                    <span>Resume uploaded — AI will use this to personalise your interview</span>
+                    <strong>Resume uploaded</strong>
+                    <span>AI will use this to personalise your interview</span>
                   </div>
                 </div>
                 <div className="resume-actions">
-                  <a href={user.resumeFile.data} target="_blank" rel="noreferrer" className="btn-outline">View</a>
+                  <a href={user.resumeUrl} target="_blank" rel="noreferrer" className="btn-outline">View</a>
                   <button className="btn-remove" onClick={removeResume}>Remove</button>
                 </div>
               </div>
@@ -321,13 +327,8 @@ const Profile = () => {
           {/* WORK EXPERIENCE */}
           <Section title="Work Experience" badge="AI Uses This">
             <p className="section-hint">The AI may ask you to dive deeper into roles and achievements you've listed.</p>
-            <textarea
-              name="experience"
-              rows={5}
-              value={user.experience}
-              onChange={handleChange}
-              placeholder="Senior Developer — Acme Corp — 2022–present — Built microservices reducing latency by 40%"
-            />
+            <textarea name="experience" rows={5} value={user.experience} onChange={handleChange}
+              placeholder="Senior Developer — Acme Corp — 2022–present — Built microservices reducing latency by 40%"/>
             <label className="file-upload">
               📎 Upload Offer Letters
               <input hidden type="file" multiple onChange={e => readFiles(e.target.files, "offerLetters")}/>
@@ -338,13 +339,8 @@ const Profile = () => {
           {/* PROJECTS */}
           <Section title="Key Projects" badge="AI Uses This">
             <p className="section-hint">Expect questions about your projects — the AI will probe your technical decisions.</p>
-            <textarea
-              name="projectsText"
-              rows={5}
-              value={user.projectsText}
-              onChange={handleChange}
-              placeholder="E-commerce App — React, Node.js, MongoDB — Processed 1000+ orders/day"
-            />
+            <textarea name="projectsText" rows={5} value={user.projectsText} onChange={handleChange}
+              placeholder="E-commerce App — React, Node.js, MongoDB — Processed 1000+ orders/day"/>
             <div className="repo-input">
               <input placeholder="Project Name" value={repoName} onChange={e => setRepoName(e.target.value)}/>
               <input placeholder="GitHub URL" value={repoUrl} onChange={e => setRepoUrl(e.target.value)}/>
@@ -362,13 +358,8 @@ const Profile = () => {
           {/* CERTIFICATIONS */}
           <Section title="Certifications" badge="AI Uses This">
             <p className="section-hint">If you hold certifications, the AI will ask targeted questions in those domains.</p>
-            <textarea
-              name="certificationsText"
-              rows={3}
-              value={user.certificationsText}
-              onChange={handleChange}
-              placeholder="AWS Solutions Architect — Associate (2023)&#10;Google Cloud Professional Data Engineer (2022)"
-            />
+            <textarea name="certificationsText" rows={3} value={user.certificationsText} onChange={handleChange}
+              placeholder="AWS Solutions Architect — Associate (2023)&#10;Google Cloud Professional Data Engineer (2022)"/>
             <label className="file-upload">
               🎓 Upload Certificates
               <input hidden type="file" multiple onChange={e => readFiles(e.target.files, "certificates")}/>
@@ -383,7 +374,6 @@ const Profile = () => {
 };
 
 /* ---------- SMALL COMPONENTS ---------- */
-
 const Section = ({ title, badge, children }) => (
   <section className="profile-section">
     <div className="section-title-row">
