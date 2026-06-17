@@ -11,13 +11,17 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const allowed = ["name","phone","college","degree","organization",
-                     "linkedin","github","summary","skills","profilePic","resumeUrl"];
+    const allowed = [
+      "name", "phone", "college", "degree", "organization",
+      "linkedin", "github", "summary", "skills", "profilePic",
+      "resumeUrl", "experience", "projectsText", "certificationsText",
+      "offerLetters", "certificates", "projectRepos"
+    ];
     const updates = {};
     allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
 
     const user = await User.findByIdAndUpdate(
-      req.user._id, { $set: updates }, { new: true, runValidators: true }
+      req.user._id, { $set: updates }, { new: true, runValidators: false }
     ).select("-password");
     res.json(user);
   } catch (error) {
