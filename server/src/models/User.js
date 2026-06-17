@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema(
     summary:      { type: String, default: "" },
     skills:       [{ type: String }],
     profilePic:   { type: String, default: "" },
+    resumeUrl:    { type: String, default: "" },
   },
   { timestamps: true }
 );
