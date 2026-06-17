@@ -59,7 +59,11 @@ const validateUpdateProfile = [
   body("phone")
     .optional()
     .trim()
-    .matches(/^[+\d\s\-().]{7,20}$/).withMessage("Enter a valid phone number"),
+    .custom((val) => {
+      if (val && val !== "" && !/^[+\d\s\-().]{7,20}$/.test(val))
+        throw new Error("Enter a valid phone number");
+      return true;
+    }),
 
   body("linkedin")
     .optional()
@@ -91,7 +95,31 @@ const validateUpdateProfile = [
   body("summary")
     .optional()
     .trim()
-    .isLength({ max: 500 }).withMessage("Summary must be under 500 characters"),
+    .isLength({ max: 2000 }).withMessage("Summary must be under 2000 characters"),
+
+  body("experience")
+    .optional()
+    .trim()
+    .isLength({ max: 5000 }).withMessage("Experience must be under 5000 characters"),
+
+  body("projectsText")
+    .optional()
+    .trim()
+    .isLength({ max: 5000 }).withMessage("Projects must be under 5000 characters"),
+
+  body("certificationsText")
+    .optional()
+    .trim()
+    .isLength({ max: 2000 }).withMessage("Certifications must be under 2000 characters"),
+
+  body("college").optional().trim(),
+  body("degree").optional().trim(),
+  body("organization").optional().trim(),
+  body("profilePic").optional(),
+  body("resumeUrl").optional(),
+  body("offerLetters").optional(),
+  body("certificates").optional(),
+  body("projectRepos").optional(),
 
   handleValidation,
 ];
