@@ -44,6 +44,11 @@ const ROLE_LABELS = {
   fullstack:   { label: "Full Stack Developer",  emoji: "🔗" },
   devops:      { label: "DevOps Engineer",       emoji: "🚀" },
   datascience: { label: "Data Scientist",        emoji: "📊" },
+  dsa:         { label: "DSA / Algorithms",      emoji: "🧮" },
+  hr:          { label: "HR Interview",          emoji: "🤝" },
+  aiml:        { label: "AI / ML Engineer",      emoji: "🤖" },
+  security:    { label: "Security Engineer",     emoji: "🔐" },
+  data:        { label: "Data Analyst",          emoji: "📈" },
 };
 
 const STEPS = ["Difficulty", "Device Check", "Ready"];

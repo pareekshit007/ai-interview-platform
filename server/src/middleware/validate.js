@@ -126,7 +126,10 @@ const validateUpdateProfile = [
 
 // ── Interview ────────────────────────────────────────────────────────────────
 
-const VALID_ROLES        = ["frontend", "backend", "fullstack", "devops", "datascience"];
+const VALID_ROLES = [
+  "frontend", "backend", "fullstack", "devops", "datascience",
+  "dsa", "hr", "aiml", "security", "data"
+];
 const VALID_DIFFICULTIES = ["easy", "medium", "hard"];
 
 const validateStartInterview = [

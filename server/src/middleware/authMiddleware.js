@@ -12,20 +12,26 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ message: "Not authorized — no token" });
+    return res.status(401).json({ message: "Not authorized — please log in" });
   }
 
   try {
     const decoded = verifyToken(token);
-    req.user = await User.findById(decoded.id).select("-password");
 
-    if (!req.user) {
-      return res.status(401).json({ message: "User not found" });
+    // Token valid but user deleted from DB
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "Account not found — please sign up" });
     }
 
+    req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Token invalid or expired" });
+    // Distinguish between expired vs truly invalid
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Session expired — please log in again" });
+    }
+    return res.status(401).json({ message: "Invalid token — please log in again" });
   }
 };
 

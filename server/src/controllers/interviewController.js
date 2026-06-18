@@ -29,13 +29,21 @@ const submitInterview = async (req, res) => {
     const totalScore = Math.round(
       answers.reduce((sum, a) => sum + (a.score || 0), 0) / answers.length
     );
+    interview.totalScore = totalScore; // ← was missing, so totalScore was always undefined in response
+
+    const verdict =
+      totalScore >= 85 ? "Excellent" :
+      totalScore >= 70 ? "Good" :
+      totalScore >= 50 ? "Average" : "Needs Work";
+    interview.verdict = verdict; // ← was missing too
+
     interview.aiFeedback = await generateSessionFeedback(interview.role, answers, totalScore);
     await interview.save();
 
     res.json({
-      message: "Interview submitted",
+      message:    "Interview submitted",
       totalScore: interview.totalScore,
-      verdict: interview.verdict,
+      verdict:    interview.verdict,
       aiFeedback: interview.aiFeedback,
     });
   } catch (error) {
