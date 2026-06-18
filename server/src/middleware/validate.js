@@ -188,11 +188,6 @@ const validateSubmitInterview = [
 // ── AI ───────────────────────────────────────────────────────────────────────
 
 const validateGetQuestions = [
-  body("role")
-    .optional()
-    .trim()
-    .isIn(VALID_ROLES).withMessage(`Role must be one of: ${VALID_ROLES.join(", ")}`),
-
   body("difficulty")
     .optional()
     .isIn(VALID_DIFFICULTIES).withMessage(`Difficulty must be one of: ${VALID_DIFFICULTIES.join(", ")}`),
