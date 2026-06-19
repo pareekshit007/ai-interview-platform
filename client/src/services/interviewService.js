@@ -9,5 +9,8 @@ export const submitInterview = (interviewId, answers) =>
 export const fetchHistory = () =>
   api.get("/interview/history");
 
+export const fetchProgress = () =>
+  api.get("/interview/progress");
+
 export const fetchInterview = (interviewId) =>
   api.get(`/interview/${interviewId}`);

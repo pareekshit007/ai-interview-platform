@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import Progress from "./pages/Progress";
 import Contact from "./pages/Contact";
 import Roles from "./pages/Roles";
 import InterviewSetup from "./pages/InterviewSetup";
@@ -38,6 +39,7 @@ function App() {
 
         {/* Protected */}
         <Route path="/dashboard"             element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/progress"              element={<ProtectedRoute><Progress /></ProtectedRoute>} />
         <Route path="/roles"                 element={<ProtectedRoute><Roles /></ProtectedRoute>} />
         <Route path="/interview-setup/:role" element={<ProtectedRoute><InterviewSetup /></ProtectedRoute>} />
         <Route path="/interview-room/:role"  element={<ProtectedRoute><InterviewRoom /></ProtectedRoute>} />

@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema(
     offerLetters:         { type: Array, default: [] },
     certificates:         { type: Array, default: [] },
     projectRepos:         { type: Array, default: [] },
+    currentStreak:        { type: Number, default: 0 },
+    longestStreak:        { type: Number, default: 0 },
+    lastInterviewDate:    { type: Date, default: null },
   },
   { timestamps: true }
 );

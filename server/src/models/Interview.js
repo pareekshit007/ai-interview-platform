@@ -9,6 +9,7 @@ const answerSchema = new mongoose.Schema({
   clarity:       { type: Number, default: 0 },
   sentiment:     { type: Number, default: 0 },
   aiFeedback:    { type: String, default: "" },
+  topic:         { type: String, default: "General" },
 });
 
 const interviewSchema = new mongoose.Schema(

@@ -155,6 +155,14 @@ const Dashboard = () => {
                   </div>
                   <span>→</span>
                 </div>
+                <div className="db-action-secondary" onClick={() => navigate("/progress")}>
+                  <div className="db-action-s-icon">📈</div>
+                  <div>
+                    <h4>Progress</h4>
+                    <p>Trends & streaks</p>
+                  </div>
+                  <span>→</span>
+                </div>
                 <div className="db-action-secondary" onClick={() => navigate("/profile")}>
                   <div className="db-action-s-icon">👤</div>
                   <div>

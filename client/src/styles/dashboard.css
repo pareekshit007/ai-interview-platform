@@ -362,8 +362,14 @@
 
 .db-action-secondary-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.75rem;
+}
+
+@media (max-width: 560px) {
+  .db-action-secondary-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .db-action-secondary {
