@@ -11,8 +11,8 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
+const allowedOrigins = process.env.CLIENT_URLS
+  ? process.env.CLIENT_URLS.split(",").map((o) => o.trim())
   : ["http://localhost:5173"];
 
 app.use(cors({

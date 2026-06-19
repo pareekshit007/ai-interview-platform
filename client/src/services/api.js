@@ -1,4 +1,10 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "https://ai-interview-platform-rwh2.onrender.com/api";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!BASE_URL) {
+  console.error(
+    "❌ VITE_API_URL is not set. Create client/.env (local) or set the env var in your hosting dashboard (Vercel)."
+  );
+}
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");

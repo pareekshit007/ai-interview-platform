@@ -9,8 +9,9 @@ export const uploadResume = async (file) => {
   formData.append("resume", file);
 
   const token = localStorage.getItem("token");
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL || "https://ai-interview-platform-rwh2.onrender.com/api"}/upload/resume`,
+const BASE_URL = import.meta.env.VITE_API_URL;
+const res = await fetch(
+  `${BASE_URL}/upload/resume`,
     {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
