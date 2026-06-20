@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useInterview } from "../context/InterviewContext";
+import { fetchCompanies } from "../services/aiService";
 import Loader from "../components/common/Loader";
 import "../styles/interviewSetup.css";
 
@@ -51,7 +52,7 @@ const ROLE_LABELS = {
   data:        { label: "Data Analyst",          emoji: "📈" },
 };
 
-const STEPS = ["Difficulty", "Device Check", "Ready"];
+const STEPS = ["Difficulty", "Company", "Device Check", "Ready"];
 
 // Check if user has AI-personalisable profile data
 const getProfileContextStatus = () => {
@@ -74,8 +75,10 @@ const InterviewSetup = () => {
   const { startInterviewSession, loading, error } = useInterview();
   const profileCtx = getProfileContextStatus();
 
-  const [step,       setStep]       = useState(0); // 0=difficulty, 1=devices, 2=ready
+  const [step,       setStep]       = useState(0); // 0=difficulty, 1=company, 2=devices, 3=ready
   const [difficulty, setDifficulty] = useState("medium");
+  const [companies,  setCompanies]  = useState([]);
+  const [company,    setCompany]    = useState(null); // null = generic, no company style
   const [camera,     setCamera]     = useState(false);
   const [mic,        setMic]        = useState(false);
   const [permError,  setPermError]  = useState("");
@@ -85,6 +88,12 @@ const InterviewSetup = () => {
   const cameraStreamRef = useRef(null);
   const micStreamRef    = useRef(null);
   const videoPreviewRef = useRef(null);
+
+  useEffect(() => {
+    fetchCompanies()
+      .then((data) => setCompanies(data.companies || []))
+      .catch(() => setCompanies([])); // fail silently — company mode is optional
+  }, []);
 
   useEffect(() => () => {
     cameraStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -126,13 +135,14 @@ const InterviewSetup = () => {
   const handleStart = async () => {
     cameraStreamRef.current?.getTracks().forEach(t => t.stop());
     micStreamRef.current?.getTracks().forEach(t => t.stop());
-    await startInterviewSession(role, difficulty);
+    await startInterviewSession(role, difficulty, company);
     navigate(`/interview-room/${role}`);
   };
 
-  const roleInfo  = ROLE_LABELS[role] || { label: role, emoji: "💼" };
-  const diffConf  = DIFFICULTY_CONFIG[difficulty];
-  const canStart  = camera && mic;
+  const roleInfo     = ROLE_LABELS[role] || { label: role, emoji: "💼" };
+  const diffConf      = DIFFICULTY_CONFIG[difficulty];
+  const canStart       = camera && mic;
+  const selectedCompany = companies.find(c => c.key === company) || null;
 
   return (
     <>
@@ -196,14 +206,59 @@ const InterviewSetup = () => {
               <div className="setup-nav">
                 <div />
                 <button className="nav-btn primary" onClick={() => setStep(1)}>
+                  Continue → Company Mode
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 1: Company Mode ── */}
+          {step === 1 && (
+            <div className="setup-section">
+              <p className="section-label">Simulate a specific company's interview style (optional)</p>
+
+              <div className="company-grid">
+                <button
+                  className={`company-card ${!company ? "selected" : ""}`}
+                  onClick={() => setCompany(null)}
+                >
+                  <div className="company-emoji">🎯</div>
+                  <div className="company-name">Generic</div>
+                  <div className="company-desc">Balanced, role-standard questions</div>
+                </button>
+
+                {companies.map((c) => (
+                  <button
+                    key={c.key}
+                    className={`company-card ${company === c.key ? "selected" : ""}`}
+                    onClick={() => setCompany(c.key)}
+                  >
+                    <div className="company-emoji">{c.emoji}</div>
+                    <div className="company-name">{c.name}</div>
+                    <div className="company-tags">
+                      {c.focusAreas.slice(0, 2).map(f => (
+                        <span key={f} className="company-tag">{f}</span>
+                      ))}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {companies.length === 0 && (
+                <p className="company-empty-hint">Company mode unavailable right now — continuing with generic questions.</p>
+              )}
+
+              <div className="setup-nav">
+                <button className="nav-btn ghost" onClick={() => setStep(0)}>← Back</button>
+                <button className="nav-btn primary" onClick={() => setStep(2)}>
                   Continue → Device Check
                 </button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 1: Device Check ── */}
-          {step === 1 && (
+          {/* ── STEP 2: Device Check ── */}
+          {step === 2 && (
             <div className="setup-section">
               <p className="section-label">Test your camera and microphone</p>
 
@@ -248,11 +303,11 @@ const InterviewSetup = () => {
               {permError && <div className="setup-error">⚠️ {permError}</div>}
 
               <div className="setup-nav">
-                <button className="nav-btn ghost" onClick={() => setStep(0)}>← Back</button>
+                <button className="nav-btn ghost" onClick={() => setStep(1)}>← Back</button>
                 <button
                   className={`nav-btn primary ${!canStart ? "disabled" : ""}`}
                   disabled={!canStart}
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(3)}
                 >
                   Continue → Review
                 </button>
@@ -260,8 +315,8 @@ const InterviewSetup = () => {
             </div>
           )}
 
-          {/* ── STEP 2: Ready ── */}
-          {step === 2 && (
+          {/* ── STEP 3: Ready ── */}
+          {step === 3 && (
             <div className="setup-section">
               <div className="ready-summary">
                 <div className="summary-row">
@@ -273,6 +328,14 @@ const InterviewSetup = () => {
                   <span className="summary-value" style={{ color: diffConf.color }}>
                     {diffConf.emoji} {diffConf.label} — {diffConf.tag}
                   </span>
+                </div>
+                <div className="summary-row">
+                  <span className="summary-label">Company Mode</span>
+                  {selectedCompany ? (
+                    <span className="summary-value">{selectedCompany.emoji} {selectedCompany.name} style</span>
+                  ) : (
+                    <span className="summary-value" style={{ color: "#64748b" }}>🎯 Generic</span>
+                  )}
                 </div>
                 <div className="summary-row">
                   <span className="summary-label">Questions</span>
@@ -310,7 +373,7 @@ const InterviewSetup = () => {
               {error && <div className="setup-error">⚠️ {error}</div>}
 
               <div className="setup-nav">
-                <button className="nav-btn ghost" onClick={() => setStep(1)}>← Back</button>
+                <button className="nav-btn ghost" onClick={() => setStep(2)}>← Back</button>
                 <button className="nav-btn start" onClick={handleStart} disabled={loading}>
                   {loading ? <span className="btn-loading"><span className="btn-spinner" />Generating…</span> : "🚀 Start Interview"}
                 </button>

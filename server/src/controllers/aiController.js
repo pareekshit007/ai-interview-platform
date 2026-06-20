@@ -1,14 +1,19 @@
 const { generateQuestions } = require("../services/questionGenerator");
 const { generateAnswerFeedback, generateSessionFeedback } = require("../services/feedbackGenerator");
+const { listCompanies } = require("../data/companyProfiles");
 
 const getQuestions = async (req, res) => {
   try {
-    const { role = "frontend", difficulty = "medium", count = 5, resumeContext = null } = req.body;
-    const questions = await generateQuestions(role, difficulty, Number(count), resumeContext);
+    const { role = "frontend", difficulty = "medium", count = 5, resumeContext = null, company = null } = req.body;
+    const questions = await generateQuestions(role, difficulty, Number(count), { company, resumeContext });
     res.json({ questions });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+const getCompanies = (req, res) => {
+  res.json({ companies: listCompanies() });
 };
 
 const getAnswerFeedback = async (req, res) => {
@@ -35,4 +40,4 @@ const getSessionFeedback = async (req, res) => {
   }
 };
 
-module.exports = { getQuestions, getAnswerFeedback, getSessionFeedback };
+module.exports = { getQuestions, getAnswerFeedback, getSessionFeedback, getCompanies };

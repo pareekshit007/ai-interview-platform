@@ -1,4 +1,5 @@
 const model = require("../config/gemini");
+const { getCompanyProfile } = require("../data/companyProfiles");
 
 // Large fallback pool — shuffled randomly so repeats are very unlikely
 const FALLBACK_POOL = {
@@ -131,42 +132,6 @@ const FALLBACK_POOL = {
     "Explain Dijkstra's algorithm and its use case.",
     "What is the difference between a min-heap and a max-heap?",
   ],
-  aiml: [
-    "Explain the difference between supervised and unsupervised learning.",
-    "What is overfitting and how do you prevent it?",
-    "Explain how gradient descent optimizes a model.",
-    "What is the bias-variance tradeoff?",
-    "Explain how a neural network learns using backpropagation.",
-    "What is the difference between classification and regression?",
-    "Explain the concept of transfer learning.",
-    "What is a confusion matrix and what metrics can you derive from it?",
-    "What is feature engineering and why does it matter?",
-    "Explain the difference between bagging and boosting.",
-  ],
-  security: [
-    "What is the OWASP Top 10 and why does it matter?",
-    "Explain the difference between symmetric and asymmetric encryption.",
-    "What is SQL injection and how do you prevent it?",
-    "What is a man-in-the-middle attack and how do you defend against it?",
-    "Explain how HTTPS works and why it is secure.",
-    "What is XSS and how do you prevent it?",
-    "Explain the difference between authentication and authorization.",
-    "What is a firewall and how does it work?",
-    "What is two-factor authentication and why is it important?",
-    "Explain what a DDoS attack is and common mitigation strategies.",
-  ],
-  data: [
-    "What is the difference between a left join and an inner join in SQL?",
-    "How do you handle missing data in a dataset?",
-    "Explain the difference between OLAP and OLTP.",
-    "What is data normalization and why is it important?",
-    "How would you identify and handle outliers in a dataset?",
-    "What is the difference between a fact table and a dimension table?",
-    "Explain window functions in SQL with an example.",
-    "What is ETL and how does it work?",
-    "How do you measure the quality of a dataset?",
-    "What is the difference between structured and unstructured data?",
-  ],
 };
 
 // Fisher-Yates shuffle
@@ -179,8 +144,10 @@ const shuffle = (arr) => {
   return a;
 };
 
-const generateQuestions = async (role = "frontend", difficulty = "medium", count = 5) => {
+const generateQuestions = async (role = "frontend", difficulty = "medium", count = 5, options = {}) => {
   try {
+    const { company = null, resumeContext = null } = options;
+
     const difficultyNote = {
       easy:   "entry-level candidates with 0–1 year of experience. Questions should test fundamentals and conceptual understanding.",
       medium: "mid-level candidates with 2–3 years of experience. Questions should test practical knowledge and problem-solving.",
@@ -191,11 +158,20 @@ const generateQuestions = async (role = "frontend", difficulty = "medium", count
     const seed = Math.random().toString(36).slice(2, 8);
     const timestamp = Date.now();
 
-    const prompt = `You are a senior technical interviewer. Generate exactly ${count} UNIQUE interview questions for a ${role} developer position.
+    const companyProfile = company ? getCompanyProfile(company) : null;
+    const companyBlock = companyProfile
+      ? `\nCompany Style: Simulate a ${companyProfile.name} interview. ${companyProfile.style}\nWeight the questions toward these focus areas where relevant to the role: ${companyProfile.focusAreas.join(", ")}.\n`
+      : "";
+
+    const resumeBlock = resumeContext
+      ? `\nCandidate Background (tailor 1-2 questions to this where relevant): ${String(resumeContext).slice(0, 800)}\n`
+      : "";
+
+    const prompt = `You are a senior technical interviewer${companyProfile ? ` at ${companyProfile.name}` : ""}. Generate exactly ${count} UNIQUE interview questions for a ${role} developer position.
 
 Session ID: ${seed}-${timestamp} (use this to ensure questions are different every time)
 Difficulty: ${difficulty.toUpperCase()} — targeted at ${difficultyNote}
-
+${companyBlock}${resumeBlock}
 Requirements:
 - Every question must be DIFFERENT from common/repeated interview questions
 - Mix types: ~60% deep technical, ~20% scenario/problem-solving, ~20% practical experience

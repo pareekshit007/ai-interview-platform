@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchInterview } from "../services/interviewService";
+import { shareScorecardImage, downloadScorecardImage } from "../utils/scorecardImage";
 import Loader from "../components/common/Loader";
 import "../styles/scorecard.css";
 import "../styles/feedback.css";
@@ -14,11 +15,16 @@ const VERDICT_CONFIG = {
 };
 
 const ROLE_LABELS = {
-  frontend:    { label: "Frontend Developer",   emoji: "🖥️" },
-  backend:     { label: "Backend Developer",    emoji: "⚙️" },
-  fullstack:   { label: "Full Stack Developer", emoji: "🔗" },
-  devops:      { label: "DevOps Engineer",      emoji: "🚀" },
-  datascience: { label: "Data Scientist",       emoji: "📊" },
+  frontend:    { label: "Frontend Developer",    emoji: "🖥️" },
+  backend:     { label: "Backend Developer",     emoji: "⚙️" },
+  fullstack:   { label: "Full Stack Developer",  emoji: "🔗" },
+  devops:      { label: "DevOps Engineer",       emoji: "🚀" },
+  datascience: { label: "Data Scientist",        emoji: "📊" },
+  dsa:         { label: "DSA / Algorithms",      emoji: "🧮" },
+  hr:          { label: "HR Interview",          emoji: "🤝" },
+  aiml:        { label: "AI / ML Engineer",      emoji: "🤖" },
+  security:    { label: "Security Engineer",     emoji: "🔐" },
+  data:        { label: "Data Analyst",          emoji: "📈" },
 };
 
 const METRICS = [
@@ -82,6 +88,8 @@ const ScoreCardDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState("");
   const [flipped, setFlipped] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareDone, setShareDone] = useState(false);
 
   useEffect(() => {
     fetchInterview(id)
@@ -115,6 +123,44 @@ const ScoreCardDetail = () => {
   const metrics = { confidence: avg("confidence"), clarity: avg("clarity"), sentiment: avg("sentiment"), communication: avg("confidence") };
 
   const parsed = parseFeedback(data?.aiFeedback);
+
+  const userName = (() => {
+    try { return JSON.parse(localStorage.getItem("user") || "{}").name; } catch { return ""; }
+  })();
+
+  const shareData = { role, difficulty: diff, score, verdict, userName, date: data?.createdAt || new Date() };
+  const linkedInShareText = `I scored ${score}/100 on a ${roleInfo.label} mock interview using AI Interview Platform! 🚀`;
+
+  const handleShare = async () => {
+    setSharing(true);
+    try {
+      const result = await shareScorecardImage(shareData, linkedInShareText);
+      if (result.method === "download") {
+        setShareDone(true);
+        setTimeout(() => setShareDone(false), 4000);
+      }
+    } catch (err) {
+      console.error("Share failed:", err);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setSharing(true);
+    try {
+      await downloadScorecardImage(shareData, `${roleInfo.label.replace(/\s+/g, "-").toLowerCase()}-scorecard.png`);
+      setShareDone(true);
+      setTimeout(() => setShareDone(false), 4000);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const handleLinkedInPost = () => {
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="sc-page" style={{ paddingBottom: "80px" }}>
@@ -304,6 +350,24 @@ const ScoreCardDetail = () => {
           📊 Dashboard
         </button>
       </div>
+
+      {/* ── SHARE ── */}
+      <div className="sc-share-row">
+        <button className="sc-share-btn sc-share-primary" onClick={handleShare} disabled={sharing}>
+          {sharing ? "Generating..." : "📤 Share Scorecard"}
+        </button>
+        <button className="sc-share-btn" onClick={handleDownload} disabled={sharing}>
+          ⬇️ Download Image
+        </button>
+        <button className="sc-share-btn sc-share-linkedin" onClick={async () => { await handleDownload(); handleLinkedInPost(); }}>
+          in Post to LinkedIn
+        </button>
+      </div>
+      {shareDone && (
+        <div className="sc-share-toast">
+          ✅ Image downloaded — attach it to your LinkedIn post!
+        </div>
+      )}
 
     </div>
   );

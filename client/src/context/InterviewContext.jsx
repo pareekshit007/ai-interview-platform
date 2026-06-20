@@ -17,8 +17,9 @@ export const InterviewProvider = ({ children }) => {
   const [sessionFeedback,   setSessionFeedback]   = useState("");
   const [currentRole,       setCurrentRole]       = useState("");
   const [currentDifficulty, setCurrentDifficulty] = useState("medium");
+  const [currentCompany,    setCurrentCompany]    = useState(null);
 
-  const startInterviewSession = async (role, difficulty = "medium") => {
+  const startInterviewSession = async (role, difficulty = "medium", company = null) => {
     // ✅ Reset everything immediately — before any API call
     // This prevents stale currentIndex from a previous session
     setCurrentIndex(0);
@@ -31,11 +32,12 @@ export const InterviewProvider = ({ children }) => {
     setError("");
     setCurrentRole(role);
     setCurrentDifficulty(difficulty);
+    setCurrentCompany(company);
     setLoading(true);
 
     try {
-      const { questions: qs }     = await fetchQuestions({ role, difficulty, count: 5 });
-      const { interviewId: id }   = await startInterview({ role, difficulty, questions: qs });
+      const { questions: qs }     = await fetchQuestions({ role, difficulty, count: 5, company });
+      const { interviewId: id }   = await startInterview({ role, difficulty, questions: qs, company });
       setQuestions(qs);
       setInterviewId(id);
     } catch (err) {
@@ -53,6 +55,7 @@ export const InterviewProvider = ({ children }) => {
     const prevQuestions   = [...questions];
     const prevRole        = currentRole;
     const prevDifficulty  = currentDifficulty;
+    const prevCompany     = currentCompany;
 
     // Reset progress only, keep questions
     setCurrentIndex(0);
@@ -66,7 +69,7 @@ export const InterviewProvider = ({ children }) => {
 
     try {
       const { interviewId: id } = await startInterview({
-        role: prevRole, difficulty: prevDifficulty, questions: prevQuestions,
+        role: prevRole, difficulty: prevDifficulty, questions: prevQuestions, company: prevCompany,
       });
       setQuestions(prevQuestions);
       setInterviewId(id);
@@ -115,7 +118,7 @@ export const InterviewProvider = ({ children }) => {
 
   const results = {
     totalScore, interviewId,
-    role: currentRole, difficulty: currentDifficulty,
+    role: currentRole, difficulty: currentDifficulty, company: currentCompany,
     confidence:    totalScore,
     sentiment:     Math.max(totalScore - 10, 0),
     clarity:       Math.max(totalScore - 5,  0),

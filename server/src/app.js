@@ -8,11 +8,12 @@ const userRoutes = require("./routes/userRoutes");
 const { errorHandler } = require("./middleware/errorMiddleware");
 const notificationRoutes = require("./routes/notificationRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const friendRoomRoutes = require("./routes/friendRoomRoutes");
 
 const app = express();
 
-const allowedOrigins = process.env.CLIENT_URLS
-  ? process.env.CLIENT_URLS.split(",").map((o) => o.trim())
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
   : ["http://localhost:5173"];
 
 app.use(cors({
@@ -33,6 +34,7 @@ app.use("/api/ai",            aiRoutes);
 app.use("/api/user",          userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload",        uploadRoutes);
+app.use("/api/friend-room",   friendRoomRoutes);
 
 app.use(errorHandler);
 

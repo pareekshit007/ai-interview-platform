@@ -142,6 +142,11 @@ const validateStartInterview = [
     .optional()
     .isIn(VALID_DIFFICULTIES).withMessage(`Difficulty must be one of: ${VALID_DIFFICULTIES.join(", ")}`),
 
+  body("company")
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 50 }).withMessage("Invalid company"),
+
   body("questions")
     .isArray({ min: 1, max: 20 }).withMessage("questions must be a non-empty array (max 20)"),
 
@@ -188,6 +193,11 @@ const validateSubmitInterview = [
 // ── AI ───────────────────────────────────────────────────────────────────────
 
 const validateGetQuestions = [
+  body("role")
+    .optional()
+    .trim()
+    .isIn(VALID_ROLES).withMessage(`Role must be one of: ${VALID_ROLES.join(", ")}`),
+
   body("difficulty")
     .optional()
     .isIn(VALID_DIFFICULTIES).withMessage(`Difficulty must be one of: ${VALID_DIFFICULTIES.join(", ")}`),

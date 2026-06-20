@@ -146,6 +146,21 @@ const Dashboard = () => {
                 <div className="db-action-arrow">→</div>
               </div>
 
+              <div
+                className="db-action-primary db-action-friend"
+                onClick={() => navigate("/friend-interview/create")}
+              >
+                <div className="db-action-glow" />
+                <div className="db-action-content">
+                  <div className="db-action-icon">👥</div>
+                  <div>
+                    <h3>Mock Interview with a Friend</h3>
+                    <p>Live video call — share a link, no account needed for them</p>
+                  </div>
+                </div>
+                <div className="db-action-arrow">→</div>
+              </div>
+
               <div className="db-action-secondary-row">
                 <div className="db-action-secondary" onClick={() => navigate("/interview-history")}>
                   <div className="db-action-s-icon">📋</div>

@@ -17,6 +17,9 @@ import ScoreCardDetail from "./pages/ScoreCardDetail";
 import Feedback from "./pages/Feedback";
 import InterviewHistory from "./pages/InterviewHistory";
 import Profile from "./pages/Profile";
+import FriendRoomCreate from "./pages/FriendRoomCreate";
+import FriendRoomJoin from "./pages/FriendRoomJoin";
+import FriendCallRoom from "./pages/FriendCallRoom";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Redirects already-logged-in users away from /login and /signup
@@ -37,6 +40,10 @@ function App() {
         <Route path="/login"   element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/signup"  element={<PublicRoute><Signup /></PublicRoute>} />
 
+        {/* Friend Interview — join/room are intentionally public (guest, no login) */}
+        <Route path="/friend-interview/join/:code" element={<FriendRoomJoin />} />
+        <Route path="/friend-interview/room/:code" element={<FriendCallRoom />} />
+
         {/* Protected */}
         <Route path="/dashboard"             element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/progress"              element={<ProtectedRoute><Progress /></ProtectedRoute>} />
@@ -48,6 +55,7 @@ function App() {
         <Route path="/interview/:id"         element={<ProtectedRoute><ScoreCardDetail /></ProtectedRoute>} />
         <Route path="/feedback/:role"        element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         <Route path="/profile"               element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/friend-interview/create" element={<ProtectedRoute><FriendRoomCreate /></ProtectedRoute>} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

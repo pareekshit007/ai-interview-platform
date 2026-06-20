@@ -360,6 +360,22 @@
   transform: translateX(4px);
 }
 
+.db-action-friend {
+  background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(0,229,255,0.08));
+  border-color: rgba(167,139,250,0.25);
+}
+.db-action-friend:hover {
+  border-color: rgba(167,139,250,0.5);
+  box-shadow: 0 20px 40px rgba(167,139,250,0.12);
+}
+.db-action-friend .db-action-glow {
+  background: radial-gradient(circle at 30% 50%, rgba(167,139,250,0.1), transparent 60%);
+}
+.db-action-friend .db-action-icon {
+  filter: drop-shadow(0 0 8px rgba(167,139,250,0.5));
+}
+.db-action-friend .db-action-arrow { color: #a78bfa; }
+
 .db-action-secondary-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

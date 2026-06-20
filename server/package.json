@@ -17,7 +17,9 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^8.0.0",
     "multer": "^2.2.0",
-    "multer-storage-cloudinary": "^4.0.0"
+    "multer-storage-cloudinary": "^4.0.0",
+    "socket.io": "^4.8.1",
+    "nanoid": "^3.3.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
