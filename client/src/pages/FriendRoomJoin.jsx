@@ -5,18 +5,25 @@ import Loader from "../components/common/Loader";
 import "../styles/friendRoom.css";
 
 const ROLE_LABELS = {
-  frontend: "Frontend Developer", backend: "Backend Developer", fullstack: "Full Stack Developer",
-  devops: "DevOps Engineer", datascience: "Data Scientist", dsa: "DSA / Algorithms",
-  hr: "HR Interview", aiml: "AI / ML Engineer", security: "Security Engineer", data: "Data Analyst",
+  frontend: "Frontend Developer", backend: "Backend Developer",
+  fullstack: "Full Stack Developer", devops: "DevOps Engineer",
+  datascience: "Data Scientist", dsa: "DSA / Algorithms",
+  hr: "HR Interview", aiml: "AI / ML Engineer",
+  security: "Security Engineer", data: "Data Analyst",
 };
 
 const FriendRoomJoin = () => {
-  const { code } = useParams();
-  const navigate = useNavigate();
+  const { code }  = useParams();
+  const navigate  = useNavigate();
   const [loading, setLoading] = useState(true);
   const [room, setRoom]       = useState(null);
-  const [name, setName]       = useState("");
   const [error, setError]     = useState("");
+
+  // Check if user is logged in
+  const token    = localStorage.getItem("token");
+  const userRaw  = localStorage.getItem("user");
+  const user     = userRaw ? (() => { try { return JSON.parse(userRaw); } catch { return null; } })() : null;
+  const isLoggedIn = !!(token && user);
 
   useEffect(() => {
     getFriendRoom(code)
@@ -26,10 +33,25 @@ const FriendRoomJoin = () => {
   }, [code]);
 
   const handleJoin = () => {
-    if (!name.trim()) { setError("Please enter your name"); return; }
-    sessionStorage.setItem("friendRoomGuestName", name.trim());
+    if (!isLoggedIn) {
+      // Save room code so we can redirect back after login
+      sessionStorage.setItem("friendRoomRedirect", `/friend-interview/join/${code}`);
+      navigate("/login");
+      return;
+    }
     navigate(`/friend-interview/room/${code}?as=guest`);
   };
+
+  // If coming back from login, auto-redirect
+  useEffect(() => {
+    if (isLoggedIn && room && !loading) {
+      const redirect = sessionStorage.getItem("friendRoomRedirect");
+      if (redirect && redirect.includes(code)) {
+        sessionStorage.removeItem("friendRoomRedirect");
+        navigate(`/friend-interview/room/${code}?as=guest`);
+      }
+    }
+  }, [isLoggedIn, room, loading, code, navigate]);
 
   if (loading) return <Loader text="Looking up room..." />;
 
@@ -48,7 +70,7 @@ const FriendRoomJoin = () => {
     );
   }
 
-  const candidateRole = room.hostIsInterviewer ? "Candidate" : "Interviewer";
+  const isInterviewer = room?.hostIsInterviewer ? false : true;
 
   return (
     <div className="fr-root">
@@ -60,40 +82,56 @@ const FriendRoomJoin = () => {
       <div className="fr-wrap">
         <div className="fr-card">
           <span className="fr-tag">YOU'VE BEEN INVITED</span>
-          <h1 className="fr-title">{room.hostName} invited you</h1>
+          <h1 className="fr-title">{room?.hostName} invited you</h1>
           <p className="fr-sub">
-            {ROLE_LABELS[room.role] || room.role} mock interview · {room.difficulty} difficulty
+            {ROLE_LABELS[room?.role] || room?.role} mock interview · {room?.difficulty} difficulty
           </p>
 
           <div className="fr-invite-summary">
             <div className="fr-invite-row">
               <span>Your role</span>
-              <strong>{candidateRole === "Candidate" ? "🎤 Candidate" : "🧑‍💼 Interviewer"}</strong>
+              <strong>{isInterviewer ? "🧑‍💼 Interviewer" : "🎤 Candidate"}</strong>
             </div>
             <div className="fr-invite-row">
               <span>Questions</span>
-              <strong>{room.questionCount} prepared</strong>
+              <strong>{room?.questionCount} prepared</strong>
+            </div>
+            <div className="fr-invite-row">
+              <span>Session history</span>
+              <strong>✅ Saved to your account</strong>
             </div>
           </div>
 
-          <div className="fr-field">
-            <label>Your name</label>
-            <input
-              className="fr-name-input"
-              placeholder="Enter your name"
-              value={name}
-              onChange={(e) => { setName(e.target.value); setError(""); }}
-              onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-              maxLength={40}
-            />
-          </div>
+          {!isLoggedIn && (
+            <div className="fr-localhost-warning">
+              🔐 You need to <strong>log in or sign up</strong> to join this interview — your results will be saved to your account.
+            </div>
+          )}
 
-          {error && <div className="fr-error">⚠️ {error}</div>}
+          {isLoggedIn && (
+            <div className="fr-logged-in-note">
+              ✅ Joining as <strong>{user?.name}</strong>
+            </div>
+          )}
 
           <button className="fr-create-btn" onClick={handleJoin}>
-            🎥 Join Call
+            {isLoggedIn ? "🎥 Join Call" : "🔐 Log in to Join"}
           </button>
-          <p className="fr-no-account-note">No account needed — you're joining as a guest.</p>
+
+          {!isLoggedIn && (
+            <p className="fr-no-account-note">
+              Don't have an account?{" "}
+              <span
+                className="fr-signup-link"
+                onClick={() => {
+                  sessionStorage.setItem("friendRoomRedirect", `/friend-interview/join/${code}`);
+                  navigate("/signup");
+                }}
+              >
+                Sign up free
+              </span>
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -85,6 +85,10 @@ const initSignalingServer = (httpServer, allowedOrigins) => {
       socket.to(joinedRoom).emit("interview:end");
     });
 
+    socket.on("interview:scorecard", (data) => {
+      socket.to(joinedRoom).emit("interview:scorecard", data);
+    });
+
     // ── Simple in-call chat (fallback if audio fails) ──
     socket.on("chat:message", ({ text, from }) => {
       socket.to(joinedRoom).emit("chat:message", { text, from, at: Date.now() });
