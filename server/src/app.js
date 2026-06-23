@@ -1,14 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 
-const authRoutes = require("./routes/authRoutes");
-const interviewRoutes = require("./routes/interviewRoutes");
-const aiRoutes = require("./routes/aiRoutes");
-const userRoutes = require("./routes/userRoutes");
-const { errorHandler } = require("./middleware/errorMiddleware");
-const notificationRoutes = require("./routes/notificationRoutes");
-const uploadRoutes = require("./routes/uploadRoutes");
-const friendRoomRoutes = require("./routes/friendRoomRoutes");
+const authRoutes           = require("./routes/authRoutes");
+const interviewRoutes      = require("./routes/interviewRoutes");
+const aiRoutes             = require("./routes/aiRoutes");
+const userRoutes           = require("./routes/userRoutes");
+const { errorHandler }     = require("./middleware/errorMiddleware");
+const notificationRoutes   = require("./routes/notificationRoutes");
+const uploadRoutes         = require("./routes/uploadRoutes");
+const friendRoomRoutes     = require("./routes/friendRoomRoutes");
+const emailReminderRoutes  = require("./routes/emailReminderRoutes");  // ← NEW
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/user",          userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload",        uploadRoutes);
 app.use("/api/friend-room",   friendRoomRoutes);
+app.use("/api/reminders",     emailReminderRoutes);  // ← NEW
 
 app.use(errorHandler);
 

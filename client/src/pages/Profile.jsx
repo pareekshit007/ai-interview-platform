@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Loader from "../components/common/Loader";
 import { getProfile, updateProfile, uploadResume } from "../services/userService";
 import "../styles/profile.css";
+import "../styles/emailReminderSettings.css";  // ← NEW
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -28,13 +29,25 @@ const Profile = () => {
   const [repoName, setRepoName] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
 
+  // ── NEW: email reminder state ────────────────────────────────────────────
+  const [reminderEnabled, setReminderEnabled]   = useState(false);
+  const [reminderLoading, setReminderLoading]   = useState(true);
+  const [reminderSaving,  setReminderSaving]    = useState(false);
+  const [reminderTesting, setReminderTesting]   = useState(false);
+  const [reminderToast,   setReminderToast]     = useState(null);
+
+  const showReminderToast = (msg, type = "success") => {
+    setReminderToast({ msg, type });
+    setTimeout(() => setReminderToast(null), 3000);
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
   const hasAIContext = !!(
     user.skills.length > 0 || user.experience?.trim() ||
     user.certificationsText?.trim() || user.projectsText?.trim() ||
     user.summary?.trim() || user.resumeUrl
   );
 
-  // Load profile from DB on mount
   useEffect(() => {
     const isAuth = localStorage.getItem("isAuthenticated");
     if (!isAuth) { navigate("/login"); return; }
@@ -44,16 +57,30 @@ const Profile = () => {
         setLoading(true);
         const data = await getProfile();
         setUser(prev => ({
-          ...prev,
-          ...data,
+          ...prev, ...data,
           skills: data.skills || [],
           offerLetters: data.offerLetters || [],
           certificates: data.certificates || [],
           projectRepos: data.projectRepos || [],
           resumeUrl: data.resumeUrl || "",
         }));
+
+        // ── NEW: load reminder preference ──────────────────────────────
+        const BASE_URL = import.meta.env.VITE_API_URL;
+        const token    = localStorage.getItem("token");
+        const rRes = await fetch(`${BASE_URL}/reminders/preference`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (rRes.ok) {
+          const rData = await rRes.json();
+          setReminderEnabled(rData.emailReminders ?? false);
+        }
+        setReminderLoading(false);
+        // ──────────────────────────────────────────────────────────────
+
       } catch (err) {
         console.error("Failed to load profile", err);
+        setReminderLoading(false);
       } finally {
         setLoading(false);
       }
@@ -61,12 +88,55 @@ const Profile = () => {
     load();
   }, [navigate]);
 
+  // ── NEW: toggle reminder ─────────────────────────────────────────────────
+  const handleReminderToggle = async () => {
+    setReminderSaving(true);
+    try {
+      const next = !reminderEnabled;
+      const BASE_URL = import.meta.env.VITE_API_URL;
+      const token    = localStorage.getItem("token");
+      const res = await fetch(`${BASE_URL}/reminders/preference`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ enabled: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setReminderEnabled(next);
+      showReminderToast(data.message);
+    } catch (err) {
+      showReminderToast(err.message || "Failed to save preference", "error");
+    } finally {
+      setReminderSaving(false);
+    }
+  };
+
+  // ── NEW: test email ──────────────────────────────────────────────────────
+  const handleReminderTest = async () => {
+    setReminderTesting(true);
+    try {
+      const BASE_URL = import.meta.env.VITE_API_URL;
+      const token    = localStorage.getItem("token");
+      const res  = await fetch(`${BASE_URL}/reminders/test-me`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      showReminderToast(data.message);
+    } catch (err) {
+      showReminderToast(err.message || "Failed to send test email", "error");
+    } finally {
+      setReminderTesting(false);
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
   const handleChange = e => {
     const { name, value } = e.target;
     setUser(prev => ({ ...prev, [name]: value }));
   };
 
-  /* ---------- PROFILE PIC ---------- */
   const handleProfilePic = e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -75,7 +145,6 @@ const Profile = () => {
     reader.readAsDataURL(file);
   };
 
-  /* ---------- RESUME UPLOAD ---------- */
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -92,7 +161,6 @@ const Profile = () => {
 
   const removeResume = () => setUser(prev => ({ ...prev, resumeUrl: "" }));
 
-  /* ---------- FILE UPLOAD GENERIC ---------- */
   const readFiles = (files, key) => {
     Array.from(files).forEach(file => {
       const reader = new FileReader();
@@ -110,7 +178,6 @@ const Profile = () => {
     setUser(prev => ({ ...prev, [key]: prev[key].filter(f => f.name !== name) }));
   };
 
-  /* ---------- SKILLS ---------- */
   const addSkill = skill => {
     const s = (skill || skillInput).trim();
     if (s && !user.skills.includes(s)) {
@@ -123,7 +190,6 @@ const Profile = () => {
     setUser(prev => ({ ...prev, skills: prev.skills.filter(x => x !== skill) }));
   };
 
-  /* ---------- PROJECT REPOS ---------- */
   const addRepo = () => {
     if (!repoName || !repoUrl) return;
     setUser(prev => ({
@@ -137,7 +203,6 @@ const Profile = () => {
     setUser(prev => ({ ...prev, projectRepos: prev.projectRepos.filter(r => r.name !== name) }));
   };
 
-  /* ---------- SAVE ---------- */
   const normalizeUrl = url => url && !url.startsWith("http") ? `https://${url}` : url;
 
   const handleSave = async () => {
@@ -366,6 +431,77 @@ const Profile = () => {
             </label>
             <FileList files={user.certificates} onRemove={name => removeFile("certificates", name)}/>
           </Section>
+
+          {/* ── NEW: WEEKLY EMAIL REMINDERS ─────────────────────────────── */}
+          <Section title="📧 Weekly Practice Reminders">
+            <p className="section-hint">
+              Get a personalised interview question every Monday, targeting your weakest topic.
+            </p>
+
+            {reminderLoading ? (
+              <div className="reminder-loading">
+                <div className="reminder-spinner"/> <span>Loading preference…</span>
+              </div>
+            ) : (
+              <div className="reminder-card">
+
+                {/* Toast */}
+                {reminderToast && (
+                  <div className={`reminder-toast reminder-toast--${reminderToast.type}`}>
+                    {reminderToast.type === "success" ? "✅" : "❌"} {reminderToast.msg}
+                  </div>
+                )}
+
+                {/* Toggle row */}
+                <div className="reminder-toggle-row">
+                  <div className="reminder-toggle-info">
+                    <span className="reminder-toggle-label">
+                      {reminderEnabled ? "🔔 Reminders ON" : "🔕 Reminders OFF"}
+                    </span>
+                    <span className="reminder-toggle-desc">
+                      {reminderEnabled
+                        ? "You'll receive an email every Monday at 09:00."
+                        : "Enable to get weekly practice nudges in your inbox."}
+                    </span>
+                  </div>
+                  <button
+                    className={`reminder-toggle-btn ${reminderEnabled ? "reminder-toggle-btn--on" : ""}`}
+                    onClick={handleReminderToggle}
+                    disabled={reminderSaving}
+                    aria-pressed={reminderEnabled}
+                  >
+                    <span className="reminder-toggle-knob"/>
+                  </button>
+                </div>
+
+                {/* Preview & test */}
+                {reminderEnabled && (
+                  <>
+                    <div className="reminder-preview">
+                      <p className="reminder-preview-title">📬 What's in each email?</p>
+                      <ul className="reminder-preview-list">
+                        <li>🎯 One question targeting your weakest interview topic</li>
+                        <li>📊 Your recent average score for that topic</li>
+                        <li>💡 Tips on structuring a great answer</li>
+                        <li>🔗 A direct link to start a full mock interview</li>
+                      </ul>
+                    </div>
+                    <button
+                      className="reminder-test-btn"
+                      onClick={handleReminderTest}
+                      disabled={reminderTesting}
+                    >
+                      {reminderTesting
+                        ? <><span className="reminder-spinner reminder-spinner--sm"/> Sending…</>
+                        : "📩 Send me a test email now"}
+                    </button>
+                  </>
+                )}
+
+              </div>
+            )}
+          </Section>
+          {/* ─────────────────────────────────────────────────────────────── */}
 
         </div>
       </div>
