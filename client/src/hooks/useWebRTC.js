@@ -5,28 +5,28 @@ const SIGNALING_URL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")
   : "https://ai-interview-platform-rwh2.onrender.com";
 
-// Build ICE server config — STUN for most networks, TURN as relay fallback
-// for restricted networks (corporate firewalls, mobile carriers, etc.)
+// Build ICE server config using exact Metered.ca URL format
 const buildIceServers = () => {
+  const username   = import.meta.env.VITE_TURN_USERNAME;
+  const credential = import.meta.env.VITE_TURN_CREDENTIAL;
+  const host       = import.meta.env.VITE_TURN_HOST || "global.relay.metered.ca";
+
   const servers = [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    { urls: `stun:${host}:80` },
   ];
 
-  const host       = import.meta.env.VITE_TURN_HOST;
-  const username   = import.meta.env.VITE_TURN_USERNAME;
-  const credential = import.meta.env.VITE_TURN_CREDENTIAL;
-
-  if (host && username && credential) {
-    // Add TURN over UDP, TCP, and TLS — maximises chance of connection on any network
+  if (username && credential) {
     servers.push(
-      { urls: `turn:${host}:80`,   username, credential },
-      { urls: `turn:${host}:80?transport=tcp`, username, credential },
-      { urls: `turns:${host}:443?transport=tcp`, username, credential },
+      { urls: `turn:${host}:80`,                       username, credential },
+      { urls: `turn:${host}:80?transport=tcp`,          username, credential },
+      { urls: `turn:${host}:443`,                      username, credential },
+      { urls: `turns:${host}:443?transport=tcp`,        username, credential },
     );
     console.log("✅ TURN server configured:", host);
   } else {
-    console.warn("⚠️ No TURN server configured — peer connection may fail on restricted networks.");
+    console.warn("⚠️ No TURN credentials — peer connection may fail on restricted networks.");
   }
 
   return { iceServers: servers };
@@ -85,8 +85,17 @@ export const useWebRTC = ({ code, as, name }) => {
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      } catch {
-        setError("Camera/microphone access denied. Please allow permissions and refresh.");
+      } catch (err) {
+        console.error("getUserMedia failed:", err.name, err.message);
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          setError("Camera/microphone permission denied. Click the 🔒 lock icon in your browser address bar, allow Camera and Microphone, then refresh.");
+        } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+          setError("No camera or microphone found on this device. Please connect one and refresh.");
+        } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+          setError("Camera is being used by another app. Close other apps using your camera, then refresh.");
+        } else {
+          setError(`Could not access camera/microphone: ${err.message}. Please check permissions and refresh.`);
+        }
         return;
       }
       if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
