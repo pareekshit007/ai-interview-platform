@@ -6,49 +6,64 @@ import Loader from "../components/common/Loader";
 import "../styles/friendCallRoom.css";
 
 const ROLE_LABELS = {
-  frontend: "Frontend Developer", backend: "Backend Developer",
-  fullstack: "Full Stack Developer", devops: "DevOps Engineer",
-  datascience: "Data Scientist", dsa: "DSA / Algorithms",
-  hr: "HR Interview", aiml: "AI / ML Engineer",
-  security: "Security Engineer", data: "Data Analyst",
+  frontend:"Frontend Developer", backend:"Backend Developer",
+  fullstack:"Full Stack Developer", devops:"DevOps Engineer",
+  datascience:"Data Scientist", dsa:"DSA / Algorithms",
+  hr:"HR Interview", aiml:"AI / ML Engineer",
+  security:"Security Engineer", data:"Data Analyst",
 };
 
-const VERDICT_EMOJI = { Excellent: "🏆", Good: "✅", Average: "📈", "Needs Work": "💪" };
-const VERDICT_COLOR = { Excellent: "#22c55e", Good: "#00e5ff", Average: "#f59e0b", "Needs Work": "#ef4444" };
+const VERDICT_EMOJI  = { Excellent:"🏆", Good:"✅", Average:"📈", "Needs Work":"💪" };
+const VERDICT_COLOR  = { Excellent:"#22c55e", Good:"#00e5ff", Average:"#f59e0b", "Needs Work":"#ef4444" };
 
+/* ─── helpers ─────────────────────────────────────── */
+const getUser = () => {
+  try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
+};
+const getUserId = (u) => u?._id || u?.id || null;
+
+/* ═══════════════════════════════════════════════════ */
 const FriendCallRoom = () => {
-  const { code }         = useParams();
-  const [searchParams]   = useSearchParams();
-  const navigate         = useNavigate();
-  const as               = searchParams.get("as") === "guest" ? "guest" : "host";
+  const { code }       = useParams();
+  const [sp]           = useSearchParams();
+  const navigate       = useNavigate();
+  const as             = sp.get("as") === "guest" ? "guest" : "host";
 
-  // ── Auth ──
-  const token   = localStorage.getItem("token");
-  const userRaw = localStorage.getItem("user");
-  const user    = userRaw ? (() => { try { return JSON.parse(userRaw); } catch { return null; } })() : null;
-  const name    = user?.name || (as === "host" ? "Host" : "Guest");
+  const token = localStorage.getItem("token");
+  const user  = getUser();
+  const name  = user?.name || (as === "host" ? "Host" : "Guest");
 
-  // Redirect to login if not authenticated
+  /* ── guard: must be logged in ── */
   useEffect(() => {
     if (!token || !user) {
       sessionStorage.setItem("friendRoomRedirect", `/friend-interview/join/${code}`);
       navigate("/login");
     }
-  }, [token, user, code, navigate]);
+  }, []); // eslint-disable-line
 
-  const [roomMeta, setRoomMeta]       = useState(null);
-  const [loadingMeta, setLoadingMeta] = useState(true);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [started, setStarted]         = useState(false);
-  const [ended, setEnded]             = useState(false);
-  const [notes, setNotes]             = useState({});
-  const [chatOpen, setChatOpen]       = useState(false);
-  const [chatInput, setChatInput]     = useState("");
-  const [finishing, setFinishing]     = useState(false);
-  const [scoreResult, setScoreResult] = useState(null);
-  const [micFlip, setMicFlip]         = useState(false);
-  const [camFlip, setCamFlip]         = useState(false);
+  /* ── local state ── */
+  const [roomMeta,       setRoomMeta]       = useState(null);
+  const [loadingMeta,    setLoadingMeta]    = useState(true);
+  const [started,        setStarted]        = useState(false);
+  const [ended,          setEnded]          = useState(false);
+  const [questionIndex,  setQuestionIndex]  = useState(0);
+  const [notes,          setNotes]          = useState({});   // { idx: {notes,rating} }
+  const [scoreResult,    setScoreResult]    = useState(null);
+  const [finishing,      setFinishing]      = useState(false);
+  const [chatOpen,       setChatOpen]       = useState(false);
+  const [chatInput,      setChatInput]      = useState("");
+  const [micFlip,        setMicFlip]        = useState(false);
+  const [camFlip,        setCamFlip]        = useState(false);
+  const [fullscreen,     setFullscreen]     = useState(false);
   const [registeredToRoom, setRegisteredToRoom] = useState(false);
+  const [peerMuted,      setPeerMuted]      = useState(false);
+  const [peerCamOff,     setPeerCamOff]     = useState(false);
+  const [activeTab,      setActiveTab]      = useState("interview"); // interview | feedback | chat
+
+  const localVideoRef  = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const chatEndRef     = useRef(null);
+  const roomRef        = useRef(null);  // for fullscreen API
 
   const {
     connected, peerPresent, callActive,
@@ -58,29 +73,7 @@ const FriendCallRoom = () => {
     emitInterviewEvent, onInterviewEvent,
   } = useWebRTC({ code, as, name });
 
-  const localVideoRef  = useRef(null);
-  const remoteVideoRef = useRef(null);
-  const chatEndRef     = useRef(null);
-
-  // ── Fetch room meta + register user to room ──
-  useEffect(() => {
-    if (!token) return;
-    getFriendRoom(code)
-      .then(async (data) => {
-        setRoomMeta(data);
-        // Register logged-in user as guest in DB so their userId is attached
-        if (as === "guest" && !registeredToRoom) {
-          try {
-            await joinRoomAsUser(code);
-            setRegisteredToRoom(true);
-          } catch { /* non-critical if already registered */ }
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingMeta(false));
-  }, [code, as, token]);
-
-  // ── Attach media streams to video elements ──
+  /* ── attach media to video elements ── */
   useEffect(() => {
     if (localVideoRef.current && localStream)
       localVideoRef.current.srcObject = localStream;
@@ -91,38 +84,85 @@ const FriendCallRoom = () => {
       remoteVideoRef.current.srcObject = remoteStream;
   }, [remoteStream]);
 
-  // ── Sync interview state from socket events ──
+  /* ── sync state from room:joined (handles reconnects + late joins) ── */
+  useEffect(() => {
+    if (!roomData) return;
+    if (roomData.interviewStarted) setStarted(true);
+    if (roomData.interviewEnded)   setEnded(true);
+    if (typeof roomData.questionIndex === "number") setQuestionIndex(roomData.questionIndex);
+    if (roomData.notes && Object.keys(roomData.notes).length > 0)
+      setNotes((prev) => ({ ...roomData.notes, ...prev })); // server state wins for new fields
+  }, [roomData]);
+
+  /* ── socket event listeners ── */
   useEffect(() => {
     const offs = [
-      onInterviewEvent("interview:start", () => setStarted(true)),
-      onInterviewEvent("interview:next-question", ({ index }) => setQuestionIndex(index)),
+      onInterviewEvent("interview:start", () => {
+        setStarted(true);
+      }),
+      onInterviewEvent("interview:next-question", ({ index }) => {
+        setQuestionIndex(index);
+      }),
       onInterviewEvent("interview:note", ({ index, notes: n, rating }) => {
         setNotes((prev) => ({ ...prev, [index]: { notes: n, rating } }));
       }),
       onInterviewEvent("interview:end", () => {
         setEnded(true);
-        // Candidate-side auto-finish (interviewer already called handleEndInterview)
-        // Just mark ended locally; actual API call was made by the interviewer
       }),
       onInterviewEvent("interview:scorecard", (data) => {
         setScoreResult(data);
       }),
+      onInterviewEvent("media:toggle", ({ kind, enabled }) => {
+        if (kind === "mic") setPeerMuted(!enabled);
+        if (kind === "cam") setPeerCamOff(!enabled);
+      }),
     ];
-    return () => offs.forEach((off) => off && off());
+    return () => offs.forEach((off) => off?.());
   }, [onInterviewEvent]);
 
+  /* ── fetch room meta + register guest ── */
+  useEffect(() => {
+    if (!token) return;
+    getFriendRoom(code)
+      .then(async (data) => {
+        setRoomMeta(data);
+        if (as === "guest" && !registeredToRoom) {
+          try { await joinRoomAsUser(code); setRegisteredToRoom(true); } catch {}
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMeta(false));
+  }, [code, as, token]); // eslint-disable-line
+
+  /* ── auto-scroll chat ── */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  /* ── fullscreen API ── */
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      roomRef.current?.requestFullscreen?.().then(() => setFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen?.().then(() => setFullscreen(false)).catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
+  /* ── derived state ── */
   const isInterviewer = roomData
     ? (roomData.hostIsInterviewer ? as === "host" : as === "guest")
     : as === "host";
 
-  const questions      = roomData?.questions || [];
-  const currentQuestion = questions[questionIndex] || "";
+  const questions      = roomData?.questions || roomMeta?.questions || [];
+  const currentQ       = questions[questionIndex] || "";
 
-  // ── Interview controls ──
+  /* ── interview controls (interviewer only) ── */
   const handleStartInterview = () => {
     setStarted(true);
     emitInterviewEvent("interview:start");
@@ -142,31 +182,28 @@ const FriendCallRoom = () => {
 
   const handleNoteChange = (text) => {
     const updated = { notes: text, rating: notes[questionIndex]?.rating || 0 };
-    setNotes((prev) => ({ ...prev, [questionIndex]: updated }));
+    setNotes((p) => ({ ...p, [questionIndex]: updated }));
     emitInterviewEvent("interview:note", { index: questionIndex, ...updated });
   };
 
   const handleRatingChange = (rating) => {
     const updated = { notes: notes[questionIndex]?.notes || "", rating };
-    setNotes((prev) => ({ ...prev, [questionIndex]: updated }));
+    setNotes((p) => ({ ...p, [questionIndex]: updated }));
     emitInterviewEvent("interview:note", { index: questionIndex, ...updated });
   };
 
   const handleEndInterview = async () => {
     setEnded(true);
     setFinishing(true);
-
     const candidateAnswers = questions.map((q, i) => ({
       questionIndex: i,
-      questionText: q,
-      notes: notes[i]?.notes || "",
-      rating: notes[i]?.rating || 0,
+      questionText:  q,
+      notes:         notes[i]?.notes  || "",
+      rating:        notes[i]?.rating || 0,
     }));
-
     try {
-      const result = await finishFriendRoom(code, candidateAnswers, user?._id || null);
+      const result = await finishFriendRoom(code, candidateAnswers, getUserId(user));
       setScoreResult(result);
-      // Broadcast scorecard to the other peer so they also see the end screen
       emitInterviewEvent("interview:end");
       emitInterviewEvent("interview:scorecard", result);
     } catch (err) {
@@ -177,112 +214,135 @@ const FriendCallRoom = () => {
     }
   };
 
-  const handleLeave = () => {
-    hangUp();
-    if (scoreResult?.hostInterviewId || scoreResult?.guestInterviewId) {
-      const myInterviewId = as === "host" ? scoreResult.hostInterviewId : scoreResult.guestInterviewId;
-      if (myInterviewId) {
-        navigate(`/interview/${myInterviewId}`);
-        return;
-      }
-    }
-    navigate(as === "host" ? "/dashboard" : "/dashboard");
-  };
-
   const handleToggleMic = () => {
-    toggleMic();
-    setMicFlip(true);
-    setTimeout(() => setMicFlip(false), 320);
+    toggleMic(); setMicFlip(true); setTimeout(() => setMicFlip(false), 320);
   };
-
   const handleToggleCam = () => {
-    toggleCam();
-    setCamFlip(true);
-    setTimeout(() => setCamFlip(false), 320);
+    toggleCam(); setCamFlip(true); setTimeout(() => setCamFlip(false), 320);
   };
-
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
     sendChatMessage(chatInput.trim());
     setChatInput("");
   };
 
-  // ── Loading ──
-  if (!token || !user) return null; // redirect in progress
-  if (loadingMeta) return <Loader text="Connecting to room..." />;
+  const handleLeave = () => {
+    hangUp();
+    if (scoreResult) {
+      const myId = as === "host" ? scoreResult.hostInterviewId : scoreResult.guestInterviewId;
+      if (myId) { navigate(`/interview/${myId}`); return; }
+    }
+    navigate("/dashboard");
+  };
 
-  // ── Error ──
-  if (error) {
-    return (
-      <div className="fcr-root">
-        <div className="fcr-error-screen">
-          <div className="fcr-error-icon">⚠️</div>
-          <h2>{error}</h2>
-          <button onClick={() => navigate("/dashboard")}>← Back to Dashboard</button>
-        </div>
+  /* ════════════════════════════════════════════════════
+     LOADING
+  ════════════════════════════════════════════════════ */
+  if (!token || !user) return null;
+  if (loadingMeta)    return <Loader text="Connecting to room..." />;
+
+  /* ════════════════════════════════════════════════════
+     ERROR
+  ════════════════════════════════════════════════════ */
+  if (error) return (
+    <div className="fcr-root">
+      <div className="fcr-error-screen">
+        <div className="fcr-error-icon">⚠️</div>
+        <h2>{error}</h2>
+        <button onClick={() => navigate("/dashboard")}>← Dashboard</button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // ── End / Scorecard screen ──
+  /* ════════════════════════════════════════════════════
+     END / SCORECARD SCREEN
+  ════════════════════════════════════════════════════ */
   if (ended) {
-    const score   = scoreResult?.candidateScore ?? null;
+    const score   = scoreResult?.candidateScore  ?? null;
     const verdict = scoreResult?.candidateVerdict ?? null;
-    const vColor  = VERDICT_COLOR[verdict] || "#94a3b8";
-    const vEmoji  = VERDICT_EMOJI[verdict] || "📋";
+    const vColor  = VERDICT_COLOR[verdict]  || "#94a3b8";
+    const vEmoji  = VERDICT_EMOJI[verdict]  || "📋";
+    const circumference = 2 * Math.PI * 50; // r=50
 
     return (
       <div className="fcr-root">
         <div className="fcr-end-screen">
           <div className="fcr-end-icon">{vEmoji}</div>
-          <h1>Interview Complete!</h1>
-          <p className="fcr-end-sub">Great session, {name}.</p>
+          <h1 className="fcr-end-title">Interview Complete!</h1>
+          <p className="fcr-end-sub">Great session, <strong>{name}</strong>.</p>
 
           {score !== null && (
-            <div className="fcr-score-ring" style={{ "--score-color": vColor }}>
-              <svg viewBox="0 0 120 120" className="fcr-ring-svg">
+            <div className="fcr-score-ring-wrap">
+              <svg className="fcr-ring-svg" viewBox="0 0 120 120">
                 <circle cx="60" cy="60" r="50" className="fcr-ring-bg" />
                 <circle
                   cx="60" cy="60" r="50"
                   className="fcr-ring-fill"
                   style={{
                     stroke: vColor,
-                    strokeDasharray: `${(score / 100) * 314} 314`,
+                    strokeDasharray: `${(score / 100) * circumference} ${circumference}`,
                   }}
                 />
               </svg>
-              <div className="fcr-ring-score">
+              <div className="fcr-ring-inner">
                 <span className="fcr-ring-num">{score}</span>
-                <span className="fcr-ring-label">/ 100</span>
+                <span className="fcr-ring-den">/ 100</span>
               </div>
             </div>
           )}
 
           {verdict && (
-            <div className="fcr-verdict-badge" style={{ background: `${vColor}18`, border: `1.5px solid ${vColor}55`, color: vColor }}>
+            <div className="fcr-verdict-pill"
+              style={{ background:`${vColor}18`, border:`1.5px solid ${vColor}55`, color: vColor }}>
               {vEmoji} {verdict}
             </div>
           )}
 
-          <div className="fcr-end-notes">
-            {questions.map((q, i) => (
-              <div key={i} className="fcr-end-note-card">
-                <div className="fcr-end-q">Q{i + 1}. {q}</div>
-                {notes[i]?.rating > 0 && (
-                  <div className="fcr-end-rating">
-                    {"⭐".repeat(notes[i].rating)}{"☆".repeat(5 - notes[i].rating)}
+          {/* Per-question summary with interviewer notes / feedback */}
+          {questions.length > 0 && (
+            <div className="fcr-end-breakdown">
+              <h3 className="fcr-end-breakdown-title">📝 Interviewer Feedback</h3>
+              {questions.map((q, i) => (
+                <div key={i} className="fcr-end-q-card">
+                  <div className="fcr-end-q-num">Q{i + 1}</div>
+                  <div className="fcr-end-q-body">
+                    <p className="fcr-end-q-text">{q}</p>
+                    {(notes[i]?.rating > 0 || notes[i]?.notes) && (
+                      <div className="fcr-end-q-feedback">
+                        {notes[i]?.rating > 0 && (
+                          <div className="fcr-end-stars">
+                            {[1,2,3,4,5].map(s => (
+                              <span key={s} className={s <= notes[i].rating ? "star-on" : "star-off"}>★</span>
+                            ))}
+                            <span className="fcr-end-star-val">{notes[i].rating}/5</span>
+                          </div>
+                        )}
+                        {notes[i]?.notes && (
+                          <p className="fcr-end-remark">
+                            <span className="fcr-remark-label">🎓 Feedback:</span> {notes[i].notes}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {!notes[i]?.rating && !notes[i]?.notes && (
+                      <p className="fcr-end-no-feedback">No feedback recorded for this question.</p>
+                    )}
                   </div>
-                )}
-                {notes[i]?.notes && (
-                  <div className="fcr-end-note-text">📝 {notes[i].notes}</div>
-                )}
-              </div>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="fcr-end-actions">
-            <button className="fcr-end-btn fcr-end-primary" onClick={handleLeave} disabled={finishing}>
-              {finishing ? "Saving..." : "📊 View Full Scorecard"}
+            {finishing ? (
+              <button className="fcr-end-btn fcr-end-primary" disabled>⏳ Saving session...</button>
+            ) : (
+              <button className="fcr-end-btn fcr-end-primary" onClick={handleLeave}>
+                📊 View Full Scorecard & History
+              </button>
+            )}
+            <button className="fcr-end-btn fcr-end-ghost" onClick={() => navigate("/progress")}>
+              📈 Progress Dashboard
             </button>
             <button className="fcr-end-btn fcr-end-ghost" onClick={() => navigate("/dashboard")}>
               🏠 Dashboard
@@ -290,166 +350,385 @@ const FriendCallRoom = () => {
           </div>
 
           <p className="fcr-end-saved-note">
-            ✅ This session has been saved to your interview history.
+            ✅ This session has been saved to both users' interview history and will appear in Progress.
           </p>
         </div>
       </div>
     );
   }
 
-  // ── Main call room ──
+  /* ════════════════════════════════════════════════════
+     MAIN CALL ROOM
+  ════════════════════════════════════════════════════ */
   return (
-    <div className="fcr-root">
+    <div className={`fcr-root ${fullscreen ? "fcr-fullscreen" : ""}`} ref={roomRef}>
 
-      {/* ── Header ── */}
+      {/* ── HEADER ── */}
       <div className="fcr-header">
         <div className="fcr-header-left">
-          <span className="fcr-logo">AI<span>Interview</span></span>
-          <span className="fcr-room-code">#{code}</span>
-          <span className={`fcr-status-dot ${connected ? "online" : "offline"}`} />
-          <span className="fcr-status-text">{connected ? "Connected" : "Connecting..."}</span>
+          <span className="fcr-brand">AI<span>Interview</span></span>
+          <span className="fcr-code-badge">#{code}</span>
+          <span className={`fcr-dot ${connected ? "online" : ""}`} />
+          <span className="fcr-dot-label">{connected ? "Live" : "Connecting..."}</span>
+        </div>
+        <div className="fcr-header-center">
+          {started && (
+            <div className="fcr-q-pill">
+              Q{questionIndex + 1}/{questions.length}
+              <div className="fcr-q-pill-bar">
+                <div className="fcr-q-pill-fill"
+                  style={{ width:`${((questionIndex+1)/questions.length)*100}%` }} />
+              </div>
+            </div>
+          )}
         </div>
         <div className="fcr-header-right">
-          <span className={`fcr-role-badge ${isInterviewer ? "interviewer" : "candidate"}`}>
+          <span className={`fcr-role-pill ${isInterviewer ? "int" : "cand"}`}>
             {isInterviewer ? "🧑‍💼 Interviewer" : "🎤 Candidate"}
           </span>
-          <span className="fcr-user-name">{name}</span>
+          <span className="fcr-uname">{name}</span>
+          <button className="fcr-fs-btn" onClick={toggleFullscreen} title="Toggle fullscreen">
+            {fullscreen ? "⊠" : "⛶"}
+          </button>
         </div>
       </div>
 
+      {/* ── BODY ── */}
       <div className="fcr-body">
 
-        {/* ── Left: video + controls ── */}
-        <div className="fcr-video-area">
+        {/* LEFT: videos */}
+        <div className="fcr-video-col">
 
-          {/* Pre-start waiting banner */}
+          {/* Pre-start banner */}
           {!started && (
-            <div className="fcr-waiting-banner">
-              <div className="fcr-waiting-icon">🎬</div>
-              <div className="fcr-waiting-text">
-                <strong>{peerPresent ? "Both participants connected" : "Waiting for the other person..."}</strong>
+            <div className="fcr-pre-banner">
+              <div className="fcr-pre-banner-icon">
+                {peerPresent ? "🟢" : "🟡"}
+              </div>
+              <div className="fcr-pre-banner-text">
+                <strong>
+                  {peerPresent
+                    ? "Both participants connected — ready to begin"
+                    : "Waiting for the other person to join..."}
+                </strong>
                 <span>
                   {isInterviewer
-                    ? peerPresent ? "You can start the interview when ready." : "Share the room link to invite your candidate."
-                    : "Waiting for the interviewer to start the session."}
+                    ? peerPresent
+                      ? "Click 'Start Interview' in the panel to begin."
+                      : "Share the room link with your candidate."
+                    : "The interviewer will start the session shortly."}
                 </span>
               </div>
-              {isInterviewer && peerPresent && (
-                <button className="fcr-start-btn" onClick={handleStartInterview}>
-                  ▶️ Start Interview
-                </button>
-              )}
             </div>
           )}
 
-          {/* Video tiles */}
-          <div className={`fcr-video-grid ${!peerPresent ? "single" : ""}`}>
-            {/* Local */}
-            <div className="fcr-video-tile fcr-tile-local">
-              {localStream ? (
-                <video ref={localVideoRef} autoPlay playsInline muted
-                  className={camOn ? "" : "fcr-video-off"} />
-              ) : (
-                <div className="fcr-video-placeholder fcr-cam-loading">📷 Starting camera...</div>
-              )}
-              {!camOn && localStream && (
-                <div className="fcr-video-placeholder">📷 Camera off</div>
-              )}
-              <span className="fcr-video-label">
-                You ({name}) {isInterviewer ? "· Interviewer" : "· Candidate"}
-              </span>
-              <div className="fcr-tile-indicators">
-                {!micOn && <span className="fcr-muted-badge">🔇</span>}
+          {/* Video grid */}
+          <div className="fcr-videos">
+
+            {/* Local tile */}
+            <div className="fcr-tile fcr-tile-local">
+              <div className="fcr-tile-inner">
+                {localStream
+                  ? <video ref={localVideoRef} autoPlay playsInline muted
+                      className={camOn ? "" : "fcr-vid-hidden"} />
+                  : <div className="fcr-tile-placeholder"><div className="fcr-cam-spin"/>Starting camera...</div>
+                }
+                {!camOn && localStream && (
+                  <div className="fcr-tile-placeholder fcr-cam-off">
+                    <span>📷</span>Camera off
+                  </div>
+                )}
+              </div>
+              <div className="fcr-tile-bar">
+                <span className="fcr-tile-name">
+                  {name} · {isInterviewer ? "Interviewer" : "Candidate"}
+                  {!micOn && <span className="fcr-muted-tag">🔇</span>}
+                </span>
+                {callActive && <span className="fcr-live-dot">● LIVE</span>}
               </div>
             </div>
 
-            {/* Remote */}
-            <div className="fcr-video-tile fcr-tile-remote">
-              {remoteStream ? (
-                <video ref={remoteVideoRef} autoPlay playsInline />
-              ) : (
-                <div className="fcr-video-placeholder">
+            {/* Remote tile */}
+            <div className="fcr-tile fcr-tile-remote">
+              <div className="fcr-tile-inner">
+                {remoteStream
+                  ? <video ref={remoteVideoRef} autoPlay playsInline
+                      className={peerCamOff ? "fcr-vid-hidden" : ""} />
+                  : <div className="fcr-tile-placeholder">
+                      {peerPresent
+                        ? <><div className="fcr-cam-spin"/>Connecting video...</>
+                        : <><span>⏳</span>Waiting for peer...</>}
+                    </div>
+                }
+                {peerCamOff && remoteStream && (
+                  <div className="fcr-tile-placeholder fcr-cam-off">
+                    <span>📷</span>Camera off
+                  </div>
+                )}
+              </div>
+              <div className="fcr-tile-bar">
+                <span className="fcr-tile-name">
                   {peerPresent
-                    ? <><div className="fcr-connecting-spin" />Connecting video...</>
-                    : "⏳ Waiting for the other person to join..."}
-                </div>
-              )}
-              <span className="fcr-video-label">
-                {peerPresent
-                  ? (isInterviewer ? "Candidate" : "Interviewer")
-                  : "Waiting..."}
-              </span>
+                    ? isInterviewer ? "Candidate" : "Interviewer"
+                    : "Waiting..."}
+                  {peerMuted && <span className="fcr-muted-tag">🔇</span>}
+                </span>
+                {peerPresent && callActive && <span className="fcr-live-dot">● LIVE</span>}
+              </div>
             </div>
           </div>
 
-          {/* Controls bar */}
+          {/* Controls */}
           <div className="fcr-controls">
             <button
-              className={`fcr-ctrl-btn ${!micOn ? "off" : ""} ${micFlip ? "icon-flip" : ""}`}
+              className={`fcr-ctrl ${!micOn ? "off" : ""} ${micFlip ? "flip" : ""}`}
               onClick={handleToggleMic}
-              title={micOn ? "Mute mic" : "Unmute mic"}
             >
-              {micOn ? "🎙️" : "🔇"}
-              <span className="fcr-ctrl-label">{micOn ? "Mute" : "Unmute"}</span>
+              <span className="fcr-ctrl-icon">{micOn ? "🎙️" : "🔇"}</span>
+              <span className="fcr-ctrl-lbl">{micOn ? "Mute" : "Unmute"}</span>
             </button>
 
             <button
-              className={`fcr-ctrl-btn ${!camOn ? "off" : ""} ${camFlip ? "icon-flip" : ""}`}
+              className={`fcr-ctrl ${!camOn ? "off" : ""} ${camFlip ? "flip" : ""}`}
               onClick={handleToggleCam}
-              title={camOn ? "Turn off camera" : "Turn on camera"}
             >
-              {camOn ? "📹" : "📵"}
-              <span className="fcr-ctrl-label">{camOn ? "Camera" : "Off"}</span>
+              <span className="fcr-ctrl-icon">{camOn ? "📹" : "📵"}</span>
+              <span className="fcr-ctrl-lbl">{camOn ? "Camera" : "Off"}</span>
             </button>
 
             <button
-              className={`fcr-ctrl-btn ${chatOpen ? "active" : ""}`}
-              onClick={() => setChatOpen((v) => !v)}
-              title="Toggle chat"
+              className={`fcr-ctrl ${activeTab === "chat" ? "active" : ""}`}
+              onClick={() => setActiveTab(activeTab === "chat" ? "interview" : "chat")}
             >
-              💬
-              {chatMessages.length > 0 && !chatOpen && (
-                <span className="fcr-chat-badge">{chatMessages.length}</span>
+              <span className="fcr-ctrl-icon">💬</span>
+              <span className="fcr-ctrl-lbl">Chat</span>
+              {chatMessages.length > 0 && activeTab !== "chat" && (
+                <span className="fcr-badge">{chatMessages.length}</span>
               )}
-              <span className="fcr-ctrl-label">Chat</span>
             </button>
 
-            <button className="fcr-ctrl-btn fcr-leave" onClick={() => { hangUp(); navigate("/dashboard"); }}>
-              📴
-              <span className="fcr-ctrl-label">Leave</span>
+            <button className="fcr-ctrl fcr-ctrl-fs" onClick={toggleFullscreen}>
+              <span className="fcr-ctrl-icon">{fullscreen ? "⊠" : "⛶"}</span>
+              <span className="fcr-ctrl-lbl">{fullscreen ? "Exit FS" : "Fullscreen"}</span>
+            </button>
+
+            <button className="fcr-ctrl fcr-ctrl-leave" onClick={handleLeave}>
+              <span className="fcr-ctrl-icon">📴</span>
+              <span className="fcr-ctrl-lbl">Leave</span>
             </button>
           </div>
 
           {!callActive && peerPresent && (
-            <p className="fcr-connecting-note">
-              🔄 Establishing peer-to-peer connection — this may take a few seconds on some networks.
+            <p className="fcr-conn-note">
+              🔄 Establishing peer connection — may take a few seconds on some networks.
             </p>
           )}
         </div>
 
-        {/* ── Right: interview panel or chat ── */}
-        <div className="fcr-side-panel">
+        {/* RIGHT: tabs panel */}
+        <div className="fcr-panel">
 
-          {chatOpen ? (
-            /* ── Chat ── */
-            <div className="fcr-chat-panel">
-              <div className="fcr-chat-header">
-                <span>💬 Chat</span>
-                <button onClick={() => setChatOpen(false)}>✕</button>
-              </div>
-              <div className="fcr-chat-messages">
+          {/* Tab bar */}
+          <div className="fcr-tabs">
+            <button
+              className={`fcr-tab ${activeTab === "interview" ? "active" : ""}`}
+              onClick={() => setActiveTab("interview")}
+            >📋 Interview</button>
+            {isInterviewer && (
+              <button
+                className={`fcr-tab ${activeTab === "feedback" ? "active" : ""}`}
+                onClick={() => setActiveTab("feedback")}
+              >🎓 Feedback</button>
+            )}
+            <button
+              className={`fcr-tab ${activeTab === "chat" ? "active" : ""}`}
+              onClick={() => setActiveTab("chat")}
+            >
+              💬 Chat
+              {chatMessages.length > 0 && activeTab !== "chat" && (
+                <span className="fcr-tab-badge">{chatMessages.length}</span>
+              )}
+            </button>
+          </div>
+
+          {/* ── INTERVIEW TAB ── */}
+          {activeTab === "interview" && (
+            <div className="fcr-tab-body">
+              {!started ? (
+                /* Pre-start */
+                <div className="fcr-prestart">
+                  <div className="fcr-prestart-icon">🎯</div>
+                  <h3>{ROLE_LABELS[roomMeta?.role] || roomMeta?.role || "Interview"}</h3>
+                  <p>{questions.length} questions · {roomMeta?.difficulty} difficulty</p>
+
+                  <div className={`fcr-role-card ${isInterviewer ? "int" : "cand"}`}>
+                    <span>{isInterviewer ? "🧑‍💼" : "🎤"}</span>
+                    <div>
+                      <strong>{isInterviewer ? "You are the Interviewer" : "You are the Candidate"}</strong>
+                      <p>
+                        {isInterviewer
+                          ? "You control questions and give feedback after each answer."
+                          : "Answer each question out loud when it appears. The interviewer will rate and give feedback."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isInterviewer ? (
+                    <button
+                      className="fcr-start-btn"
+                      onClick={handleStartInterview}
+                      disabled={!peerPresent}
+                    >
+                      {peerPresent ? "▶️ Start Interview" : "⏳ Waiting for candidate..."}
+                    </button>
+                  ) : (
+                    <div className="fcr-cand-wait">
+                      <div className="fcr-pulse" />
+                      <span>Waiting for the interviewer to start...</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Active question display */
+                <div className="fcr-active">
+                  <div className="fcr-q-header">
+                    <span className="fcr-q-label">Question {questionIndex + 1} of {questions.length}</span>
+                    <div className="fcr-q-pbar">
+                      <div className="fcr-q-pfill"
+                        style={{ width:`${((questionIndex+1)/questions.length)*100}%` }}/>
+                    </div>
+                  </div>
+
+                  <div className="fcr-q-box">{currentQ}</div>
+
+                  {/* Candidate hint */}
+                  {!isInterviewer && (
+                    <div className="fcr-cand-hint">
+                      🎤 Speak your answer clearly. Your interviewer will rate your response and navigate to the next question.
+                    </div>
+                  )}
+
+                  {/* Navigation (interviewer only) */}
+                  {isInterviewer && (
+                    <div className="fcr-q-nav">
+                      <button className="fcr-nav-btn" onClick={handlePrev} disabled={questionIndex === 0}>
+                        ← Prev
+                      </button>
+                      {questionIndex < questions.length - 1 ? (
+                        <button className="fcr-nav-btn primary" onClick={handleNext}>
+                          Next →
+                        </button>
+                      ) : (
+                        <button
+                          className="fcr-nav-btn end"
+                          onClick={handleEndInterview}
+                          disabled={finishing}
+                        >
+                          {finishing ? "Saving..." : "🏁 End Interview"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── FEEDBACK TAB (interviewer only) ── */}
+          {activeTab === "feedback" && isInterviewer && (
+            <div className="fcr-tab-body fcr-feedback-tab">
+              {!started ? (
+                <p className="fcr-feedback-hint">Start the interview to begin giving feedback.</p>
+              ) : (
+                <>
+                  <div className="fcr-feedback-q-label">
+                    Rating Q{questionIndex + 1}: <span>{currentQ.slice(0, 60)}{currentQ.length > 60 ? "…" : ""}</span>
+                  </div>
+
+                  <div className="fcr-star-row">
+                    <span>Score:</span>
+                    <div className="fcr-stars-large">
+                      {[1,2,3,4,5].map((s) => (
+                        <button
+                          key={s}
+                          className={`fcr-star-lg ${(notes[questionIndex]?.rating || 0) >= s ? "on" : ""}`}
+                          onClick={() => handleRatingChange(s)}
+                        >★</button>
+                      ))}
+                    </div>
+                    {notes[questionIndex]?.rating > 0 && (
+                      <span className="fcr-star-val">{notes[questionIndex].rating}/5</span>
+                    )}
+                  </div>
+
+                  <textarea
+                    className="fcr-remark-input"
+                    placeholder="Remarks for this answer — e.g. 'Good use of examples, but missing time complexity analysis.' These appear in the final scorecard."
+                    value={notes[questionIndex]?.notes || ""}
+                    onChange={(e) => handleNoteChange(e.target.value)}
+                  />
+
+                  <p className="fcr-feedback-saved-hint">
+                    💾 Feedback saves instantly and appears in the candidate's final scorecard.
+                  </p>
+
+                  {/* Mini-overview of all ratings so far */}
+                  <div className="fcr-all-ratings">
+                    {questions.map((q, i) => (
+                      <div
+                        key={i}
+                        className={`fcr-rating-chip ${i === questionIndex ? "current" : ""}`}
+                        onClick={() => {
+                          setQuestionIndex(i);
+                          emitInterviewEvent("interview:next-question", { index: i });
+                        }}
+                      >
+                        <span className="fcr-rc-num">Q{i+1}</span>
+                        <span className="fcr-rc-stars">
+                          {notes[i]?.rating
+                            ? "★".repeat(notes[i].rating)
+                            : "—"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {isInterviewer && started && (
+                    <div className="fcr-end-row">
+                      {questionIndex < questions.length - 1 ? (
+                        <button className="fcr-nav-btn primary" onClick={handleNext}>Next Question →</button>
+                      ) : (
+                        <button
+                          className="fcr-nav-btn end"
+                          onClick={handleEndInterview}
+                          disabled={finishing}
+                        >
+                          {finishing ? "Saving..." : "🏁 End Interview"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── CHAT TAB ── */}
+          {activeTab === "chat" && (
+            <div className="fcr-tab-body fcr-chat-body">
+              <div className="fcr-chat-msgs">
                 {chatMessages.length === 0 && (
-                  <p className="fcr-chat-empty">No messages yet — use this if audio has issues.</p>
+                  <p className="fcr-chat-empty">No messages yet. Use this if audio has issues.</p>
                 )}
                 {chatMessages.map((m, i) => (
-                  <div key={i} className={`fcr-chat-msg ${m.self || m.from === name ? "self" : ""}`}>
-                    <span className="fcr-chat-from">{m.from}</span>
-                    <span className="fcr-chat-text">{m.text}</span>
+                  <div key={i} className={`fcr-msg ${m.self || m.from === name ? "me" : ""}`}>
+                    <span className="fcr-msg-from">{m.from}</span>
+                    <span className="fcr-msg-text">{m.text}</span>
                   </div>
                 ))}
                 <div ref={chatEndRef} />
               </div>
-              <div className="fcr-chat-input-row">
+              <div className="fcr-chat-input">
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
@@ -459,139 +738,10 @@ const FriendCallRoom = () => {
                 <button onClick={handleSendChat}>Send</button>
               </div>
             </div>
-
-          ) : (
-            /* ── Interview panel ── */
-            <div className="fcr-interview-panel">
-
-              {!started ? (
-                /* Pre-start state for side panel */
-                <div className="fcr-pre-start">
-                  <div className="fcr-pre-start-icon">🎯</div>
-                  <h3>
-                    {ROLE_LABELS[roomMeta?.role] || roomMeta?.role} Interview
-                  </h3>
-                  <p>{questions.length} questions · {roomMeta?.difficulty} difficulty</p>
-
-                  <div className="fcr-pre-start-role">
-                    <div className={`fcr-role-pill ${isInterviewer ? "int" : "cand"}`}>
-                      {isInterviewer ? "🧑‍💼 You are the Interviewer" : "🎤 You are the Candidate"}
-                    </div>
-                    {isInterviewer && (
-                      <p className="fcr-int-hint">
-                        You control question navigation and can rate each answer. The candidate sees the same question you do.
-                      </p>
-                    )}
-                    {!isInterviewer && (
-                      <p className="fcr-int-hint">
-                        Answer each question out loud. The interviewer will navigate and rate your responses.
-                      </p>
-                    )}
-                  </div>
-
-                  {isInterviewer ? (
-                    <button
-                      className="fcr-start-btn-panel"
-                      onClick={handleStartInterview}
-                      disabled={!peerPresent}
-                    >
-                      {peerPresent ? "▶️ Start Interview" : "⏳ Waiting for candidate..."}
-                    </button>
-                  ) : (
-                    <div className="fcr-candidate-waiting">
-                      <div className="fcr-pulse-dot" />
-                      <span>Waiting for the interviewer to start...</span>
-                    </div>
-                  )}
-                </div>
-
-              ) : (
-                /* Active interview */
-                <>
-                  <div className="fcr-q-header">
-                    <div className="fcr-q-progress-bar">
-                      <div
-                        className="fcr-q-progress-fill"
-                        style={{ width: `${((questionIndex + 1) / questions.length) * 100}%` }}
-                      />
-                    </div>
-                    <span className="fcr-q-counter">
-                      Question {questionIndex + 1} / {questions.length}
-                    </span>
-                  </div>
-
-                  <div className="fcr-q-text">{currentQuestion}</div>
-
-                  {isInterviewer && (
-                    <>
-                      <div className="fcr-rating-section">
-                        <span className="fcr-rating-label">Rate this answer:</span>
-                        <div className="fcr-stars">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <button
-                              key={s}
-                              className={`fcr-star ${(notes[questionIndex]?.rating || 0) >= s ? "filled" : ""}`}
-                              onClick={() => handleRatingChange(s)}
-                            >★</button>
-                          ))}
-                        </div>
-                        {notes[questionIndex]?.rating > 0 && (
-                          <span className="fcr-rating-val">{notes[questionIndex].rating}/5</span>
-                        )}
-                      </div>
-                      <textarea
-                        className="fcr-notes-input"
-                        placeholder="Notes on this answer (only you see this)..."
-                        value={notes[questionIndex]?.notes || ""}
-                        onChange={(e) => handleNoteChange(e.target.value)}
-                      />
-                    </>
-                  )}
-
-                  {!isInterviewer && (
-                    <div className="fcr-candidate-active">
-                      <div className="fcr-candidate-hint">
-                        🎤 Speak your answer clearly. The interviewer will rate your response and move to the next question.
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="fcr-q-nav">
-                    {isInterviewer && (
-                      <>
-                        <button
-                          className="fcr-nav-btn"
-                          onClick={handlePrev}
-                          disabled={questionIndex === 0}
-                        >← Prev</button>
-
-                        {questionIndex < questions.length - 1 ? (
-                          <button className="fcr-nav-btn primary" onClick={handleNext}>
-                            Next →
-                          </button>
-                        ) : (
-                          <button
-                            className="fcr-nav-btn end"
-                            onClick={handleEndInterview}
-                            disabled={finishing}
-                          >
-                            {finishing ? "Saving..." : "🏁 End Interview"}
-                          </button>
-                        )}
-                      </>
-                    )}
-                    {!isInterviewer && (
-                      <div className="fcr-candidate-nav-note">
-                        The interviewer controls navigation.
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
           )}
-        </div>
-      </div>
+
+        </div>{/* end fcr-panel */}
+      </div>{/* end fcr-body */}
     </div>
   );
 };

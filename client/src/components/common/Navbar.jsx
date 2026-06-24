@@ -298,6 +298,7 @@ const Navbar = () => {
           {isAuth && <li><NavLink to="/roles">🎭 Roles</NavLink></li>}
           {isAuth && <li><NavLink to="/dashboard">📊 Dashboard</NavLink></li>}
           {isAuth && <li><NavLink to="/interview-history">📋 History</NavLink></li>}
+          {isAuth && <li><NavLink to="/achievements">🏆  Achievements</NavLink></li>}
           {isAuth && <li><NavLink to="/profile">👤 Profile</NavLink></li>}
           <li><NavLink to="/contact">📬 Contact</NavLink></li>
         </ul>

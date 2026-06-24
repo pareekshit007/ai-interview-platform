@@ -9,7 +9,8 @@ const { errorHandler }     = require("./middleware/errorMiddleware");
 const notificationRoutes   = require("./routes/notificationRoutes");
 const uploadRoutes         = require("./routes/uploadRoutes");
 const friendRoomRoutes     = require("./routes/friendRoomRoutes");
-const emailReminderRoutes  = require("./routes/emailReminderRoutes");  // ← NEW
+const emailReminderRoutes  = require("./routes/emailReminderRoutes");
+const achievementsRoutes   = require("./routes/achievementsRoutes");   // ← NEW
 
 const app = express();
 
@@ -36,7 +37,8 @@ app.use("/api/user",          userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload",        uploadRoutes);
 app.use("/api/friend-room",   friendRoomRoutes);
-app.use("/api/reminders",     emailReminderRoutes);  // ← NEW
+app.use("/api/reminders",     emailReminderRoutes);
+app.use("/api/achievements",  achievementsRoutes);   // ← NEW
 
 app.use(errorHandler);
 
