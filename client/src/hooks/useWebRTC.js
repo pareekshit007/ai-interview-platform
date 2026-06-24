@@ -5,11 +5,31 @@ const SIGNALING_URL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")
   : "https://ai-interview-platform-rwh2.onrender.com";
 
-const ICE_SERVERS = {
-  iceServers: [
+// Build ICE server config — STUN for most networks, TURN as relay fallback
+// for restricted networks (corporate firewalls, mobile carriers, etc.)
+const buildIceServers = () => {
+  const servers = [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
-  ],
+  ];
+
+  const host       = import.meta.env.VITE_TURN_HOST;
+  const username   = import.meta.env.VITE_TURN_USERNAME;
+  const credential = import.meta.env.VITE_TURN_CREDENTIAL;
+
+  if (host && username && credential) {
+    // Add TURN over UDP, TCP, and TLS — maximises chance of connection on any network
+    servers.push(
+      { urls: `turn:${host}:80`,   username, credential },
+      { urls: `turn:${host}:80?transport=tcp`, username, credential },
+      { urls: `turns:${host}:443?transport=tcp`, username, credential },
+    );
+    console.log("✅ TURN server configured:", host);
+  } else {
+    console.warn("⚠️ No TURN server configured — peer connection may fail on restricted networks.");
+  }
+
+  return { iceServers: servers };
 };
 
 export const useWebRTC = ({ code, as, name }) => {
@@ -31,14 +51,25 @@ export const useWebRTC = ({ code, as, name }) => {
   const pendingListeners    = useRef([]);   // handlers queued before socket ready
 
   const createPeerConnection = useCallback((stream) => {
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+    const pc = new RTCPeerConnection(buildIceServers());
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
     pc.ontrack = (e) => { setRemoteStream(e.streams[0]); setCallActive(true); };
     pc.onicecandidate = (e) => {
       if (e.candidate) socketRef.current?.emit("webrtc:ice-candidate", { candidate: e.candidate });
     };
+    pc.oniceconnectionstatechange = () => {
+      console.log("ICE state:", pc.iceConnectionState);
+      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+        setCallActive(true);
+      }
+      if (pc.iceConnectionState === "failed") {
+        console.warn("ICE failed — attempting ICE restart...");
+        pc.restartIce();
+      }
+    };
     pc.onconnectionstatechange = () => {
+      console.log("Connection state:", pc.connectionState);
       if (["disconnected","failed","closed"].includes(pc.connectionState)) setCallActive(false);
     };
     pcRef.current = pc;
