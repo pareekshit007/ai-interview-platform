@@ -19,7 +19,13 @@ const Login = () => {
     setLoading(true);
     try {
       await loginUser(form);
-      navigate("/dashboard");
+      const redirect = sessionStorage.getItem("friendRoomRedirect");
+      if (redirect) {
+        sessionStorage.removeItem("friendRoomRedirect");
+        navigate(redirect);
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(err.message || "Login failed. Check your credentials.");
     } finally {

@@ -35,4 +35,18 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+// Attaches user to req if token is valid — never blocks the request
+const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const decoded = verifyToken(token);
+      const user = await User.findById(decoded.id).select("-password");
+      if (user) req.user = user;
+    }
+  } catch { /* ignore — just proceed without user */ }
+  next();
+};
+
+module.exports = { protect, optionalAuth };

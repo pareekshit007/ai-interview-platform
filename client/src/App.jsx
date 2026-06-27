@@ -21,6 +21,7 @@ import FriendRoomCreate from "./pages/FriendRoomCreate";
 import FriendRoomJoin from "./pages/FriendRoomJoin";
 import FriendCallRoom from "./pages/FriendCallRoom";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import Achievements from "./pages/Achievements";
 
 // Redirects already-logged-in users away from /login and /signup
 const PublicRoute = ({ children }) => {
@@ -56,6 +57,7 @@ function App() {
         <Route path="/feedback/:role"        element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         <Route path="/profile"               element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/friend-interview/create" element={<ProtectedRoute><FriendRoomCreate /></ProtectedRoute>} />
+        <Route path="/achievements"          element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

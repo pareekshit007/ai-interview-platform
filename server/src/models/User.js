@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
     currentStreak:        { type: Number, default: 0 },
     longestStreak:        { type: Number, default: 0 },
     lastInterviewDate:    { type: Date, default: null },
+    emailReminders:       { type: Boolean, default: false },  // ← NEW
   },
   { timestamps: true }
 );

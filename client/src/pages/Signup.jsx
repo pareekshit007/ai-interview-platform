@@ -22,7 +22,13 @@ const Signup = () => {
     setLoading(true);
     try {
       await registerUser({ name: form.name, email: form.email, password: form.password });
-      navigate("/dashboard");
+      const redirect = sessionStorage.getItem("friendRoomRedirect");
+      if (redirect) {
+        sessionStorage.removeItem("friendRoomRedirect");
+        navigate(redirect);
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(err.message || "Registration failed. Try again.");
     } finally {

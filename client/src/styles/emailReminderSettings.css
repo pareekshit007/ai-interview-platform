@@ -1,0 +1,141 @@
+/* ── emailReminderSettings.css ─────────────────────────────────────────── */
+
+.reminder-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+/* Card wrapping the toggle + preview */
+.reminder-card {
+  background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(168,85,247,0.04));
+  border: 1px solid rgba(99,102,241,0.22);
+  border-radius: 14px;
+  padding: 22px 26px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.reminder-card:hover { border-color: rgba(99,102,241,0.38); }
+
+/* Toast */
+.reminder-toast {
+  position: absolute;
+  top: 14px; right: 14px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  animation: r-fadein 0.25s ease;
+  z-index: 5;
+}
+.reminder-toast--success { background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.3); color: #34d399; }
+.reminder-toast--error   { background: rgba(239,68,68,0.12);  border: 1px solid rgba(239,68,68,0.3);  color: #f87171; }
+
+@keyframes r-fadein { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+
+/* Toggle row */
+.reminder-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(15,15,26,0.35);
+  border: 1px solid rgba(99,102,241,0.14);
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.reminder-toggle-info { display: flex; flex-direction: column; gap: 3px; }
+.reminder-toggle-label { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+.reminder-toggle-desc  { font-size: 12px; color: #64748b; }
+
+/* Toggle button */
+.reminder-toggle-btn {
+  position: relative;
+  width: 50px; height: 27px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(99,102,241,0.18);
+  cursor: pointer;
+  transition: background 0.25s;
+  flex-shrink: 0;
+}
+.reminder-toggle-btn--on { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.reminder-toggle-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.reminder-toggle-knob {
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.25s;
+}
+.reminder-toggle-btn--on .reminder-toggle-knob { transform: translateX(23px); }
+
+/* Preview */
+.reminder-preview {
+  background: rgba(99,102,241,0.06);
+  border: 1px solid rgba(99,102,241,0.16);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  animation: r-fadein 0.3s ease;
+}
+.reminder-preview-title {
+  margin: 0 0 10px;
+  font-size: 12px; font-weight: 700;
+  color: #a78bfa;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.reminder-preview-list {
+  margin: 0; padding-left: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.reminder-preview-list li { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+
+/* Test button */
+.reminder-test-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.28);
+  color: #818cf8;
+  font-size: 13px; font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  animation: r-fadein 0.3s ease;
+}
+.reminder-test-btn:hover:not(:disabled) {
+  background: rgba(99,102,241,0.18);
+  border-color: rgba(99,102,241,0.45);
+  color: #a5b4fc;
+}
+.reminder-test-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Spinner */
+.reminder-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(99,102,241,0.25);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: r-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+.reminder-spinner--sm { width: 13px; height: 13px; }
+
+@keyframes r-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+  .reminder-card { padding: 16px; }
+  .reminder-toggle-row { flex-direction: column; align-items: flex-start; }
+}

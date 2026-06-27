@@ -4,14 +4,14 @@ dotenv.config();
 const http = require("http");
 const app = require("./app");
 const connectDB = require("./config/db");
-const { initSignalingServer } = require("./sockets/signalingServer");
+const { initSignalingServer }  = require("./sockets/signalingServer");
+const { initReminderScheduler } = require("./services/reminderScheduler");  // ← NEW
 
 connectDB();
+initReminderScheduler();  // ← NEW — starts the Monday 09:00 cron
 
 const PORT = process.env.PORT || 5000;
 
-// Use a shared HTTP server so both Express (REST) and Socket.io (WebRTC signaling)
-// can listen on the same port — required for Render's single-port free tier.
 const httpServer = http.createServer(app);
 
 const allowedOrigins = process.env.CLIENT_URL
@@ -25,9 +25,9 @@ const server = httpServer.listen(PORT, () => {
   console.log(`📡 MongoDB connecting...`);
   console.log(`🤖 Gemini API: ${process.env.GEMINI_API_KEY ? "✅ Configured" : "❌ Missing key"}`);
   console.log(`📹 Signaling server ready for friend interviews`);
+  console.log(`📧 Email reminders: ${process.env.EMAIL_USER ? "✅ Configured" : "⚠️  EMAIL_USER not set"}`);
 });
 
-// Handle port in use error gracefully
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
     console.log(`⚠️  Port ${PORT} in use — retrying on ${PORT + 1}`);
