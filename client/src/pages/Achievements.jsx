@@ -1,346 +1,411 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import Loader from "../components/common/Loader";
-import { fetchBadges, fetchLeaderboard, fetchAchievementStats, fetchCertificate } from "../services/achievementsService";
-import { fetchHistory } from "../services/interviewService";
+import { useState, useEffect } from "react";
+import {
+  fetchBadges,
+  fetchLeaderboard,
+  fetchCertificate,
+  fetchAchievementStats,
+} from "../services/achievementsService";
 import "../styles/achievements.css";
 
-const Achievements = () => {
-  const navigate  = useNavigate();
-  const [tab,     setTab]     = useState("badges");
-  const [loading, setLoading] = useState(true);
-  const [badges,      setBadges]      = useState([]);
-  const [badgeStats,  setBadgeStats]  = useState({ earned: 0, total: 0 });
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [myEntry,     setMyEntry]     = useState(null);
-  const [stats,       setStats]       = useState(null);
-  const [history,     setHistory]     = useState([]);
-  const [certData,    setCertData]    = useState(null);
-  const [certLoading, setCertLoading] = useState(false);
-  const [certError,   setCertError]   = useState("");
-  const certRef = useRef(null);
+/* ── helpers ─────────────────────────────────────────────────────────────── */
+const getInitials = (name = "") =>
+  name.split(" ").slice(0, 2).map((w) => w[0] || "").join("").toUpperCase() || "?";
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LEFT PANELS
+   ════════════════════════════════════════════════════════════════════════════ */
+
+function BadgesPanel({ badges, loading }) {
+  if (loading) return <div className="ach-loading">Loading badges…</div>;
+  if (!badges.length)
+    return (
+      <div className="empty-state">
+        <span className="empty-icon">🏅</span>
+        <p>Complete interviews to earn badges!</p>
+      </div>
+    );
+  return (
+    <div className="badges-panel">
+      <div className="panel-header-row">
+        <h3 className="panel-title">Badge Collection</h3>
+        <span className="panel-count">
+          {badges.filter((b) => b.earned).length} / {badges.length} earned
+        </span>
+      </div>
+      <div className="badges-grid">
+        {badges.map((badge) => (
+          <div
+            key={badge.id || badge._id || badge.name}
+            className={`badge-card ${badge.earned ? "earned" : "locked"}`}
+          >
+            <div className="badge-icon">{badge.icon || "🎖️"}</div>
+            <p className="badge-name">{badge.name}</p>
+            <p className="badge-desc">{badge.description}</p>
+            {badge.earned && badge.earnedAt && (
+              <span className="badge-date">
+                {new Date(badge.earnedAt).toLocaleDateString()}
+              </span>
+            )}
+            {!badge.earned && <span className="badge-locked-label">Locked</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CertificatesPanel({ interviews, loading }) {
+  const [certs, setCerts]       = useState([]);
+  const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem("isAuthenticated");
-    if (!isAuth) { navigate("/login"); return; }
-    load();
-  }, [navigate]);
+    if (!interviews.length) return;
+    setFetching(true);
+    // interviews that scored ≥ 70 are eligible
+    const eligible = interviews.filter((iv) => (iv.totalScore ?? iv.score ?? 0) >= 70);
+    Promise.allSettled(
+      eligible.map((iv) => fetchCertificate(iv._id || iv.interviewId))
+    ).then((results) => {
+      const valid = results
+        .filter((r) => r.status === "fulfilled")
+        .map((r) => r.value?.certificate)
+        .filter(Boolean);
+      setCerts(valid);
+      setFetching(false);
+    });
+  }, [interviews]);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const [b, lb, s, h] = await Promise.all([
-        fetchBadges(), fetchLeaderboard(), fetchAchievementStats(), fetchHistory(),
-      ]);
-      setBadges(b.badges || []);
-      setBadgeStats({ earned: b.earned || 0, total: b.total || 0 });
-      setLeaderboard(lb.leaderboard || []);
-      setMyEntry(lb.currentUserEntry || null);
-      setStats(s);
-      setHistory((h || []).filter(iv => iv.completed && iv.totalScore >= 70));
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+  if (loading || fetching) return <div className="ach-loading">Loading certificates…</div>;
 
-  const handleFetchCertificate = async (interviewId) => {
-    setCertLoading(true); setCertError(""); setCertData(null);
-    try {
-      const data = await fetchCertificate(interviewId);
-      setCertData(data.certificate);
-      setTimeout(() => certRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-    } catch (err) { setCertError(err.message || "Could not load certificate"); }
-    finally { setCertLoading(false); }
-  };
-
-  const handlePrintCert = () => {
-    const printArea = document.getElementById("cert-print-area");
-    const w = window.open("", "_blank");
-    w.document.write(`<html><head><title>AcePrep Certificate</title>
-      <style>@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
-      body{margin:0;background:#fff;}</style></head><body>${printArea.innerHTML}</body></html>`);
-    w.document.close(); w.focus();
-    setTimeout(() => { w.print(); w.close(); }, 500);
-  };
-
-  const tierOrder = { platinum:0, gold:1, silver:2, bronze:3 };
-  const sortedBadges = [...badges].sort((a,b) => {
-    if (a.earned !== b.earned) return a.earned ? -1 : 1;
-    return (tierOrder[a.tier]??9) - (tierOrder[b.tier]??9);
-  });
-
-  const getRankStyle = (rank) => {
-    if (rank===1) return { color:"#f59e0b", icon:"🥇" };
-    if (rank===2) return { color:"#94a3b8", icon:"🥈" };
-    if (rank===3) return { color:"#f97316", icon:"🥉" };
-    return { color:"#475569", icon:`#${rank}` };
-  };
-
-  const getScoreColor = (s) =>
-    s >= 85 ? "#00f5a0" : s >= 70 ? "#3b82f6" : s >= 50 ? "#f59e0b" : "#ef4444";
-
-  const tierColors = { platinum:"#ec4899", gold:"#f59e0b", silver:"#94a3b8", bronze:"#f97316" };
+  if (!certs.length)
+    return (
+      <div className="empty-state">
+        <span className="empty-icon">📜</span>
+        <p>Score 70%+ in any interview to earn a certificate!</p>
+      </div>
+    );
 
   return (
-    <>
-      {loading && <Loader text="Loading achievements…" />}
-      <div className="ach-root">
-        <div className="ach-bg">
-          <div className="ach-orb ach-orb1"/><div className="ach-orb ach-orb2"/>
-          <div className="ach-orb ach-orb3"/><div className="ach-grid"/>
-        </div>
-
-        <div className="ach-wrap">
-
-          {/* HEADER */}
-          <header className="ach-header">
-            <div>
-              <span className="ach-tag">ACHIEVEMENTS</span>
-              <h1 className="ach-title">Your <span className="ach-title-grad">Hall of Fame</span></h1>
-              <p className="ach-sub">Badges, certificates & leaderboard — keep pushing!</p>
+    <div className="certificates-panel">
+      <div className="panel-header-row">
+        <h3 className="panel-title">Certificates</h3>
+        <span className="panel-count">{certs.length} earned</span>
+      </div>
+      <div className="certs-grid">
+        {certs.map((cert) => (
+          <div key={cert.interviewId || cert.certificateId} className="cert-card">
+            <div className="cert-ribbon">🎓</div>
+            <div className="cert-body">
+              <h4 className="cert-role">{cert.role}</h4>
+              <p className="cert-score">
+                Score: <strong>{cert.score}%</strong>
+                {cert.verdict && <span className="cert-verdict"> · {cert.verdict}</span>}
+              </p>
+              <p className="cert-id">#{cert.certificateId}</p>
+              <p className="cert-date">
+                {new Date(cert.completedAt).toLocaleDateString("en-IN", {
+                  day: "numeric", month: "long", year: "numeric",
+                })}
+              </p>
             </div>
-            {stats && (
-              <div className="ach-header-stats">
-                {[
-                  { val: stats.totalSessions,       lbl:"Sessions",  color:"#00f5a0" },
-                  { val: `${stats.avgScore}%`,       lbl:"Avg Score", color:"#3b82f6" },
-                  { val: badgeStats.earned,           lbl:"Badges",   color:"#a78bfa" },
-                  { val: stats.certificatesEarned,    lbl:"Certs",    color:"#f59e0b" },
-                ].map(s => (
-                  <div key={s.lbl} className="ach-hstat" style={{"--accent":s.color}}>
-                    <span className="ach-hstat-val" style={{color:s.color}}>{s.val}</span>
-                    <span className="ach-hstat-lbl">{s.lbl}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </header>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          {/* TABS */}
+/* ════════════════════════════════════════════════════════════════════════════
+   RIGHT PANEL — Leaderboard (uses real /api/achievements/leaderboard)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+function LeaderboardPanel() {
+  const [board,      setBoard]   = useState([]);
+  const [me,         setMe]      = useState(null);
+  const [totalUsers, setTotal]   = useState(0);
+  const [loading,    setLoading] = useState(true);
+  const [error,      setError]   = useState(null);
+
+  useEffect(() => {
+    fetchLeaderboard()
+      .then((res) => {
+        // achievementsService does .then(r => r.data), so res IS r.data
+        // but handle both shapes just in case
+        const payload = res?.leaderboard !== undefined ? res : (res?.data ?? res ?? {});
+        setBoard(payload.leaderboard || []);
+        setMe(payload.currentUserEntry || null);
+        setTotal(payload.total || 0);
+      })
+      .catch((e) => {
+        console.error("Leaderboard fetch failed:", e);
+        setError("Failed to load leaderboard.");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="ach-loading">Loading leaderboard…</div>;
+  if (error)   return <div className="ach-error">{error}</div>;
+
+  const MEDALS = ["🥇", "🥈", "🥉"];
+
+  return (
+    <div className="leaderboard-panel">
+
+      {/* ── my rank strip ── */}
+      {me ? (
+        <div className="lb-my-rank">
+          <div className="lb-my-rank-left">
+            <span className="lb-my-label">Your Rank</span>
+            <span className="lb-my-number">#{me.rank}</span>
+            <span className="lb-my-of">of {totalUsers} participants</span>
+          </div>
+          <div className="lb-my-stats">
+            <div className="lb-stat">
+              <span className="lb-stat-val">{me.avgScore}</span>
+              <span className="lb-stat-lbl">Avg Score</span>
+            </div>
+            <div className="lb-stat">
+              <span className="lb-stat-val">{me.bestScore}</span>
+              <span className="lb-stat-lbl">Best</span>
+            </div>
+            <div className="lb-stat">
+              <span className="lb-stat-val">{me.totalSessions}</span>
+              <span className="lb-stat-lbl">Sessions</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="lb-no-rank">
+          🎯 Complete an interview to appear on the leaderboard!
+        </div>
+      )}
+
+      {/* ── podium (top 3) ── */}
+      {board.length >= 3 && (
+        <div className="lb-podium">
+          {/* order: 2nd, 1st, 3rd */}
+          {[board[1], board[0], board[2]].map((user, idx) => {
+            const rank = idx === 1 ? 1 : idx === 0 ? 2 : 3;
+            return (
+              <div key={user._id} className={`lb-podium-item lb-podium-${rank}`}>
+                <div className="lb-pod-avatar">
+                  {user.profilePic
+                    ? <img src={user.profilePic} alt={user.name} />
+                    : <span>{getInitials(user.name)}</span>}
+                  <span className="lb-pod-medal">{MEDALS[rank - 1]}</span>
+                </div>
+                <p className="lb-pod-name">{user.name?.split(" ")[0]}</p>
+                <p className="lb-pod-score">{user.avgScore}% avg</p>
+                <div className="lb-pod-block" />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── ranked list ── */}
+      {board.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-icon">🏆</span>
+          <p>No participants yet. Be the first!</p>
+        </div>
+      ) : (
+        <ul className="lb-list">
+          {board.map((user) => (
+            <li
+              key={user._id}
+              className={`lb-row ${user.isCurrentUser ? "lb-row--me" : ""}`}
+            >
+              {/* rank */}
+              <span className="lb-row-rank">
+                {user.rank <= 3
+                  ? <span className="lb-medal">{MEDALS[user.rank - 1]}</span>
+                  : <span className="lb-rank-num">{user.rank}</span>}
+              </span>
+
+              {/* avatar + name */}
+              <span className="lb-row-user">
+                <span className="lb-row-avatar">
+                  {user.profilePic
+                    ? <img src={user.profilePic} alt={user.name} />
+                    : <span>{getInitials(user.name)}</span>}
+                </span>
+                <span className="lb-row-name">
+                  {user.name}
+                  {user.isCurrentUser && <span className="lb-you">you</span>}
+                </span>
+              </span>
+
+              {/* scores + badge */}
+              <span className="lb-row-stats">
+                <span className="lb-row-total">{user.avgScore}%</span>
+                <span className="lb-row-meta">
+                  best {user.bestScore}% · {user.totalSessions} sessions
+                </span>
+                {user.badge && (
+                  <span
+                    className="lb-row-badge"
+                    style={{ color: user.badge.color }}
+                  >
+                    {user.badge.label}
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+
+          {/* show current user below top-50 if they're outside */}
+          {me?.outsideTop50 && (
+            <>
+              <li className="lb-row lb-row-ellipsis">
+                <span className="lb-row-rank">…</span>
+                <span className="lb-row-user" />
+                <span className="lb-row-stats" />
+              </li>
+              <li className="lb-row lb-row--me">
+                <span className="lb-row-rank">
+                  <span className="lb-rank-num">{me.rank}</span>
+                </span>
+                <span className="lb-row-user">
+                  <span className="lb-row-avatar">
+                    {me.profilePic
+                      ? <img src={me.profilePic} alt={me.name} />
+                      : <span>{getInitials(me.name)}</span>}
+                  </span>
+                  <span className="lb-row-name">
+                    {me.name}
+                    <span className="lb-you">you</span>
+                  </span>
+                </span>
+                <span className="lb-row-stats">
+                  <span className="lb-row-total">{me.avgScore}%</span>
+                  <span className="lb-row-meta">
+                    best {me.bestScore}% · {me.totalSessions} sessions
+                  </span>
+                </span>
+              </li>
+            </>
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MAIN PAGE
+   ════════════════════════════════════════════════════════════════════════════ */
+
+export default function Achievements() {
+  const [activeTab,  setActiveTab]  = useState("badges");
+  const [badges,     setBadges]     = useState([]);
+  const [interviews, setInterviews] = useState([]);
+  const [stats,      setStats]      = useState(null);
+  const [loading,    setLoading]    = useState(true);
+
+  useEffect(() => {
+    Promise.allSettled([fetchBadges(), fetchAchievementStats()])
+      .then(([badgesRes, statsRes]) => {
+        if (badgesRes.status === "fulfilled") {
+          const b = badgesRes.value;
+          setBadges(b?.badges || b?.data?.badges || []);
+        }
+        if (statsRes.status === "fulfilled") {
+          const s = statsRes.value;
+          setStats(s?.totalSessions !== undefined ? s : (s?.data ?? s));
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const badgeEarnedCount = badges.filter((b) => b.earned).length;
+
+  return (
+    <div className="achievements-page">
+
+      {/* ── hero ── */}
+      <div className="ach-hero">
+        <span className="ach-hero-label">ACHIEVEMENTS</span>
+        <h1 className="ach-hero-title">
+          Your <span className="ach-hero-accent">Hall of Fame</span>
+        </h1>
+        <p className="ach-hero-sub">
+          Badges, certificates &amp; leaderboard — keep pushing!
+        </p>
+
+        {/* stats bar */}
+        {stats && (
+          <div className="ach-stats-bar">
+            <div className="ach-stat-item">
+              <span className="ach-stat-val">{stats.totalSessions}</span>
+              <span className="ach-stat-lbl">Interviews</span>
+            </div>
+            <div className="ach-stat-item">
+              <span className="ach-stat-val">{stats.avgScore}%</span>
+              <span className="ach-stat-lbl">Avg Score</span>
+            </div>
+            <div className="ach-stat-item">
+              <span className="ach-stat-val">{stats.bestScore}%</span>
+              <span className="ach-stat-lbl">Best Score</span>
+            </div>
+            <div className="ach-stat-item">
+              <span className="ach-stat-val">{stats.currentStreak}🔥</span>
+              <span className="ach-stat-lbl">Streak</span>
+            </div>
+            <div className="ach-stat-item">
+              <span className="ach-stat-val">{stats.certificatesEarned}</span>
+              <span className="ach-stat-lbl">Certificates</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── two-column layout ── */}
+      <div className="ach-layout">
+
+        {/* LEFT — Badges / Certificates */}
+        <div className="ach-left">
           <div className="ach-tabs">
-            {[
-              { id:"badges",       label:"🏅 Badges",      count: badgeStats.earned },
-              { id:"leaderboard",  label:"🏆 Leaderboard", count: null },
-              { id:"certificates", label:"📜 Certificates",count: stats?.certificatesEarned },
-            ].map(t => (
-              <button key={t.id} className={`ach-tab ${tab===t.id?"ach-tab--active":""}`} onClick={()=>setTab(t.id)}>
-                {t.label}
-                {t.count != null && <span className="ach-tab-count">{t.count}</span>}
-              </button>
-            ))}
+            <button
+              className={`ach-tab ${activeTab === "badges" ? "active" : ""}`}
+              onClick={() => setActiveTab("badges")}
+            >
+              🏅 Badges
+              {badgeEarnedCount > 0 && (
+                <span className="ach-tab-count">{badgeEarnedCount}</span>
+              )}
+            </button>
+            <button
+              className={`ach-tab ${activeTab === "certificates" ? "active" : ""}`}
+              onClick={() => setActiveTab("certificates")}
+            >
+              📜 Certificates
+              {stats?.certificatesEarned > 0 && (
+                <span className="ach-tab-count">{stats.certificatesEarned}</span>
+              )}
+            </button>
           </div>
 
-          {/* ── BADGES ── */}
-          {tab === "badges" && (
-            <div className="ach-section">
-              <div className="ach-badge-progress">
-                <div className="ach-bp-header">
-                  <span className="ach-bp-label">Badge Collection</span>
-                  <span className="ach-bp-count">
-                    <span style={{color:"#00f5a0"}}>{badgeStats.earned}</span> / {badgeStats.total} earned
-                  </span>
-                </div>
-                <div className="ach-bp-bar">
-                  <div className="ach-bp-fill" style={{width:`${Math.round((badgeStats.earned/badgeStats.total||0)*100)}%`}}/>
-                </div>
-              </div>
-
-              <div className="ach-badge-grid">
-                {sortedBadges.map(badge => (
-                  <div key={badge.id}
-                    className={`ach-badge-card ${badge.earned?"ach-badge-earned":"ach-badge-locked"}`}
-                    style={{"--badge-color":badge.color,"--tier-color":tierColors[badge.tier]}}
-                  >
-                    {badge.earned && <div className="ach-badge-glow"/>}
-                    <div className="ach-badge-icon-wrap">
-                      <span className="ach-badge-icon">{badge.earned ? badge.icon : "🔒"}</span>
-                    </div>
-                    <div className="ach-badge-tier" style={{color:tierColors[badge.tier]}}>{badge.tier?.toUpperCase()}</div>
-                    <p className="ach-badge-name">{badge.name}</p>
-                    <p className="ach-badge-desc">{badge.description}</p>
-                    {badge.earned && <div className="ach-badge-earned-stamp">✓ Earned</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── LEADERBOARD ── */}
-          {tab === "leaderboard" && (
-            <div className="ach-section">
-              {leaderboard.length >= 3 && (
-                <div className="ach-podium">
-                  {[leaderboard[1], leaderboard[0], leaderboard[2]].map((user, pIdx) => {
-                    const podiumRank = [2,1,3][pIdx];
-                    const rs = getRankStyle(podiumRank);
-                    const heights = ["130px","160px","110px"];
-                    return (
-                      <div key={user._id} className={`ach-podium-item ${user.isCurrentUser?"ach-podium-me":""}`}>
-                        <div className="ach-podium-avatar">
-                          {user.profilePic ? <img src={user.profilePic} alt={user.name}/> : <span>{user.name?.charAt(0).toUpperCase()}</span>}
-                          <span className="ach-podium-medal">{rs.icon}</span>
-                        </div>
-                        <p className="ach-podium-name">{user.isCurrentUser?"You 🎯":user.name}</p>
-                        <p className="ach-podium-score" style={{color:getScoreColor(user.avgScore)}}>{user.avgScore}%</p>
-                        <div className="ach-podium-base" style={{height:heights[pIdx],background:`${rs.color}18`,borderColor:`${rs.color}40`}}>
-                          <span className="ach-podium-rank" style={{color:rs.color}}>#{podiumRank}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="ach-lb-table">
-                <div className="ach-lb-thead">
-                  <span>Rank</span><span>Candidate</span><span>Avg Score</span>
-                  <span>Sessions</span><span>Best</span><span>Streak</span>
-                </div>
-                {leaderboard.map(user => {
-                  const rs = getRankStyle(user.rank);
-                  return (
-                    <div key={user._id} className={`ach-lb-row ${user.isCurrentUser?"ach-lb-row--me":""}`}>
-                      <span className="ach-lb-rank" style={{color:rs.color}}>{user.rank<=3?rs.icon:`#${user.rank}`}</span>
-                      <div className="ach-lb-user">
-                        <div className="ach-lb-avatar">
-                          {user.profilePic?<img src={user.profilePic} alt={user.name}/>:<span>{user.name?.charAt(0).toUpperCase()}</span>}
-                        </div>
-                        <div>
-                          <p className="ach-lb-name">{user.name}{user.isCurrentUser&&<span className="ach-you-tag">YOU</span>}</p>
-                          <p className="ach-lb-college">{user.college||user.degree||"—"}</p>
-                        </div>
-                      </div>
-                      <span className="ach-lb-score" style={{color:getScoreColor(user.avgScore)}}>{user.avgScore}%</span>
-                      <span className="ach-lb-sessions">{user.totalSessions}</span>
-                      <span className="ach-lb-best" style={{color:getScoreColor(user.bestScore)}}>{user.bestScore}%</span>
-                      <span className="ach-lb-streak">{user.longestStreak>0?`🔥 ${user.longestStreak}d`:"—"}</span>
-                    </div>
-                  );
-                })}
-                {myEntry?.outsideTop20 && (
-                  <>
-                    <div className="ach-lb-separator">· · ·</div>
-                    <div className="ach-lb-row ach-lb-row--me">
-                      <span className="ach-lb-rank" style={{color:"#64748b"}}>#{myEntry.rank}</span>
-                      <div className="ach-lb-user">
-                        <div className="ach-lb-avatar"><span>{myEntry.name?.charAt(0).toUpperCase()}</span></div>
-                        <div>
-                          <p className="ach-lb-name">{myEntry.name}<span className="ach-you-tag">YOU</span></p>
-                          <p className="ach-lb-college">{myEntry.college||"—"}</p>
-                        </div>
-                      </div>
-                      <span className="ach-lb-score" style={{color:getScoreColor(myEntry.avgScore)}}>{myEntry.avgScore}%</span>
-                      <span className="ach-lb-sessions">{myEntry.totalSessions}</span>
-                      <span className="ach-lb-best">—</span>
-                      <span className="ach-lb-streak">{myEntry.longestStreak>0?`🔥 ${myEntry.longestStreak}d`:"—"}</span>
-                    </div>
-                  </>
-                )}
-                {leaderboard.length===0 && (
-                  <div className="ach-empty">
-                    <span>🏆</span>
-                    <p>No data yet — complete interviews to appear here!</p>
-                    <button onClick={()=>navigate("/roles")}>Start an Interview →</button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── CERTIFICATES ── */}
-          {tab === "certificates" && (
-            <div className="ach-section">
-              <p className="ach-cert-intro">
-                Earn a certificate for every interview where you score <strong>70% or above</strong>. Download and share your achievements!
-              </p>
-              {history.length === 0 ? (
-                <div className="ach-empty">
-                  <span>📜</span>
-                  <p>No certificates yet — score 70%+ to earn one!</p>
-                  <button onClick={()=>navigate("/roles")}>Start Practicing →</button>
-                </div>
-              ) : (
-                <div className="ach-cert-list">
-                  {history.map(iv => (
-                    <div key={iv._id} className="ach-cert-row">
-                      <div className="ach-cert-row-left">
-                        <div className="ach-cert-score-ring" style={{"--score-color":getScoreColor(iv.totalScore)}}>
-                          {iv.totalScore}%
-                        </div>
-                        <div>
-                          <p className="ach-cert-role">{iv.role}</p>
-                          <p className="ach-cert-meta">{iv.difficulty} · {new Date(iv.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</p>
-                          <span className="ach-cert-verdict" style={{color:getScoreColor(iv.totalScore)}}>{iv.verdict}</span>
-                        </div>
-                      </div>
-                      <button className="ach-cert-btn" onClick={()=>handleFetchCertificate(iv._id)} disabled={certLoading}>
-                        {certLoading?"Loading…":"📜 View Certificate"}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {certError && <p className="ach-cert-error">❌ {certError}</p>}
-
-              {certData && (
-                <div ref={certRef} className="ach-cert-display">
-                  <div className="ach-cert-actions">
-                    <button className="ach-cert-print-btn" onClick={handlePrintCert}>🖨️ Print / Download PDF</button>
-                    <button className="ach-cert-close-btn" onClick={()=>setCertData(null)}>✕ Close</button>
-                  </div>
-                  <div id="cert-print-area">
-                    <div className="ach-certificate">
-                      <div className="ach-cert-border"/>
-                      <div className="ach-cert-header">
-                        <div className="ach-cert-logo">
-                          <span className="ach-cert-logo-ai">Ace</span><span className="ach-cert-logo-rest">Prep</span>
-                        </div>
-                        <p className="ach-cert-presents">proudly presents</p>
-                      </div>
-                      <h2 className="ach-cert-of-completion">Certificate of Achievement</h2>
-                      <p className="ach-cert-awarded-to">This is to certify that</p>
-                      <h1 className="ach-cert-name">{certData.recipientName}</h1>
-                      {certData.college && (
-                        <p className="ach-cert-college">{certData.college}{certData.degree?` · ${certData.degree}`:""}</p>
-                      )}
-                      <p className="ach-cert-body">has successfully completed an AI-powered mock interview for the role of</p>
-                      <div className="ach-cert-role-badge">
-                        <span>{certData.role}</span>
-                        <span className="ach-cert-role-diff">{certData.difficulty}</span>
-                      </div>
-                      <div className="ach-cert-score-display">
-                        <div className="ach-cert-score-circle">
-                          <span className="ach-cert-score-val">{certData.score}%</span>
-                          <span className="ach-cert-score-lbl">Score</span>
-                        </div>
-                        <div className="ach-cert-verdict-block">
-                          <span className="ach-cert-verdict-val" style={{color:getScoreColor(certData.score)}}>{certData.verdict}</span>
-                          <span className="ach-cert-verdict-lbl">Performance</span>
-                        </div>
-                      </div>
-                      <div className="ach-cert-footer">
-                        <div className="ach-cert-footer-left">
-                          <p className="ach-cert-date">{new Date(certData.completedAt).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</p>
-                          <p className="ach-cert-date-lbl">Date of Completion</p>
-                        </div>
-                        <div className="ach-cert-seal">
-                          <div className="ach-cert-seal-inner"><span>✦</span><span className="ach-cert-seal-text">VERIFIED</span></div>
-                        </div>
-                        <div className="ach-cert-footer-right">
-                          <p className="ach-cert-id">{certData.certificateId}</p>
-                          <p className="ach-cert-id-lbl">Certificate ID</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
+          <div className="ach-panel">
+            {activeTab === "badges" && (
+              <BadgesPanel badges={badges} loading={loading} />
+            )}
+            {activeTab === "certificates" && (
+              <CertificatesPanel interviews={interviews} loading={loading} />
+            )}
+          </div>
         </div>
-      </div>
-    </>
-  );
-};
 
-export default Achievements;
+        {/* RIGHT — Leaderboard */}
+        <div className="ach-right">
+          <div className="ach-right-header">
+            <span className="ach-right-title">🏆 Leaderboard</span>
+            <span className="ach-right-sub">Top 50 performers</span>
+          </div>
+          <LeaderboardPanel />
+        </div>
+
+      </div>
+    </div>
+  );
+}

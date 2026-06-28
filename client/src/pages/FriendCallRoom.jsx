@@ -27,7 +27,11 @@ const FriendCallRoom = () => {
   const { code }       = useParams();
   const [sp]           = useSearchParams();
   const navigate       = useNavigate();
-  const as             = sp.get("as") === "guest" ? "guest" : "host";
+
+  // Default to "host" only if ?as=host is explicitly set
+  // This prevents a guest navigating without the query param from stealing host role
+  const asParam = sp.get("as");
+  const as      = asParam === "guest" ? "guest" : "host";
 
   const token = localStorage.getItem("token");
   const user  = getUser();
@@ -42,28 +46,30 @@ const FriendCallRoom = () => {
   }, []); // eslint-disable-line
 
   /* ── local state ── */
-  const [roomMeta,       setRoomMeta]       = useState(null);
-  const [loadingMeta,    setLoadingMeta]    = useState(true);
-  const [started,        setStarted]        = useState(false);
-  const [ended,          setEnded]          = useState(false);
-  const [questionIndex,  setQuestionIndex]  = useState(0);
-  const [notes,          setNotes]          = useState({});   // { idx: {notes,rating} }
-  const [scoreResult,    setScoreResult]    = useState(null);
-  const [finishing,      setFinishing]      = useState(false);
-  const [chatOpen,       setChatOpen]       = useState(false);
-  const [chatInput,      setChatInput]      = useState("");
-  const [micFlip,        setMicFlip]        = useState(false);
-  const [camFlip,        setCamFlip]        = useState(false);
-  const [fullscreen,     setFullscreen]     = useState(false);
-  const [registeredToRoom, setRegisteredToRoom] = useState(false);
-  const [peerMuted,      setPeerMuted]      = useState(false);
-  const [peerCamOff,     setPeerCamOff]     = useState(false);
-  const [activeTab,      setActiveTab]      = useState("interview"); // interview | feedback | chat
+  const [roomMeta,         setRoomMeta]         = useState(null);
+  const [loadingMeta,      setLoadingMeta]       = useState(true);
+  const [started,          setStarted]           = useState(false);
+  const [ended,            setEnded]             = useState(false);
+  const [questionIndex,    setQuestionIndex]     = useState(0);
+  const [notes,            setNotes]             = useState({});
+  const [scoreResult,      setScoreResult]       = useState(null);
+  const [finishing,        setFinishing]         = useState(false);
+  const [chatInput,        setChatInput]         = useState("");
+  const [micFlip,          setMicFlip]           = useState(false);
+  const [camFlip,          setCamFlip]           = useState(false);
+  const [fullscreen,       setFullscreen]        = useState(false);
+  const [registeredToRoom, setRegisteredToRoom]  = useState(false);
+  const [peerMuted,        setPeerMuted]         = useState(false);
+  const [peerCamOff,       setPeerCamOff]        = useState(false);
+  const [activeTab,        setActiveTab]         = useState("interview");
+  // Verified role from DB — prevents both users claiming "host"
+  const [verifiedAs,       setVerifiedAs]        = useState(as);
+  const [roleVerified,     setRoleVerified]      = useState(false);
 
   const localVideoRef  = useRef(null);
   const remoteVideoRef = useRef(null);
   const chatEndRef     = useRef(null);
-  const roomRef        = useRef(null);  // for fullscreen API
+  const roomRef        = useRef(null);
 
   const {
     connected, peerPresent, callActive,
@@ -71,17 +77,42 @@ const FriendCallRoom = () => {
     micOn, camOn, error, roomData, chatMessages,
     toggleMic, toggleCam, sendChatMessage, hangUp,
     emitInterviewEvent, onInterviewEvent,
-  } = useWebRTC({ code, as, name });
+  } = useWebRTC({ code, as: verifiedAs, name });
 
   /* ── attach media to video elements ── */
   useEffect(() => {
-    if (localVideoRef.current && localStream)
-      localVideoRef.current.srcObject = localStream;
+    const vid = localVideoRef.current;
+    if (vid && localStream) {
+      vid.srcObject = localStream;
+      vid.muted = true; // must be set directly, not just as JSX prop
+      vid.play().catch(() => {}); // autoplay policy — force play
+    }
   }, [localStream]);
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream)
-      remoteVideoRef.current.srcObject = remoteStream;
+    const vid = remoteVideoRef.current;
+    if (vid && remoteStream) {
+      vid.srcObject = remoteStream;
+      vid.play().catch(() => {});
+    }
+  }, [remoteStream]);
+
+  // Extra safety: if the ref attaches after the stream is already set, re-attach
+  const attachLocalVideo = useCallback((node) => {
+    localVideoRef.current = node;
+    if (node && localStream) {
+      node.srcObject = localStream;
+      node.muted = true;
+      node.play().catch(() => {});
+    }
+  }, [localStream]);
+
+  const attachRemoteVideo = useCallback((node) => {
+    remoteVideoRef.current = node;
+    if (node && remoteStream) {
+      node.srcObject = remoteStream;
+      node.play().catch(() => {});
+    }
   }, [remoteStream]);
 
   /* ── sync state from room:joined (handles reconnects + late joins) ── */
@@ -91,27 +122,19 @@ const FriendCallRoom = () => {
     if (roomData.interviewEnded)   setEnded(true);
     if (typeof roomData.questionIndex === "number") setQuestionIndex(roomData.questionIndex);
     if (roomData.notes && Object.keys(roomData.notes).length > 0)
-      setNotes((prev) => ({ ...roomData.notes, ...prev })); // server state wins for new fields
+      setNotes((prev) => ({ ...roomData.notes, ...prev }));
   }, [roomData]);
 
   /* ── socket event listeners ── */
   useEffect(() => {
     const offs = [
-      onInterviewEvent("interview:start", () => {
-        setStarted(true);
-      }),
-      onInterviewEvent("interview:next-question", ({ index }) => {
-        setQuestionIndex(index);
-      }),
+      onInterviewEvent("interview:start", () => setStarted(true)),
+      onInterviewEvent("interview:next-question", ({ index }) => setQuestionIndex(index)),
       onInterviewEvent("interview:note", ({ index, notes: n, rating }) => {
         setNotes((prev) => ({ ...prev, [index]: { notes: n, rating } }));
       }),
-      onInterviewEvent("interview:end", () => {
-        setEnded(true);
-      }),
-      onInterviewEvent("interview:scorecard", (data) => {
-        setScoreResult(data);
-      }),
+      onInterviewEvent("interview:end", () => setEnded(true)),
+      onInterviewEvent("interview:scorecard", (data) => setScoreResult(data)),
       onInterviewEvent("media:toggle", ({ kind, enabled }) => {
         if (kind === "mic") setPeerMuted(!enabled);
         if (kind === "cam") setPeerCamOff(!enabled);
@@ -120,19 +143,46 @@ const FriendCallRoom = () => {
     return () => offs.forEach((off) => off?.());
   }, [onInterviewEvent]);
 
-  /* ── fetch room meta + register guest ── */
+  /* ── fetch room meta, verify role, register guest ── */
   useEffect(() => {
     if (!token) return;
     getFriendRoom(code)
       .then(async (data) => {
         setRoomMeta(data);
+
+        // ── Role verification: ensure the URL param matches reality ──
+        // If the room's hostId matches this user, they must be host.
+        // If it doesn't match (or hostId not present), they must be guest.
+        const userId = getUserId(user);
+        const hostId = data.hostId || data.host?._id || data.host?.id;
+
+        if (hostId && userId) {
+          const shouldBeHost = String(hostId) === String(userId);
+          const correctedAs  = shouldBeHost ? "host" : "guest";
+
+          if (correctedAs !== as) {
+            // URL param was wrong — silently fix without full page reload
+            console.warn(`Role mismatch: URL says "${as}" but user is "${correctedAs}". Correcting.`);
+            setVerifiedAs(correctedAs);
+            // Update URL to reflect correct role (replace so back button still works)
+            navigate(`/friend-interview/room/${code}?as=${correctedAs}`, { replace: true });
+          } else {
+            setVerifiedAs(as);
+          }
+        } else {
+          // Can't verify from DB — trust the URL param
+          setVerifiedAs(as);
+        }
+
+        setRoleVerified(true);
+
         if (as === "guest" && !registeredToRoom) {
           try { await joinRoomAsUser(code); setRegisteredToRoom(true); } catch {}
         }
       })
       .catch(() => {})
       .finally(() => setLoadingMeta(false));
-  }, [code, as, token]); // eslint-disable-line
+  }, [code, token]); // eslint-disable-line
 
   /* ── auto-scroll chat ── */
   useEffect(() => {
@@ -156,11 +206,11 @@ const FriendCallRoom = () => {
 
   /* ── derived state ── */
   const isInterviewer = roomData
-    ? (roomData.hostIsInterviewer ? as === "host" : as === "guest")
-    : as === "host";
+    ? (roomData.hostIsInterviewer ? verifiedAs === "host" : verifiedAs === "guest")
+    : verifiedAs === "host";
 
-  const questions      = roomData?.questions || roomMeta?.questions || [];
-  const currentQ       = questions[questionIndex] || "";
+  const questions  = roomData?.questions || roomMeta?.questions || [];
+  const currentQ   = questions[questionIndex] || "";
 
   /* ── interview controls (interviewer only) ── */
   const handleStartInterview = () => {
@@ -229,7 +279,7 @@ const FriendCallRoom = () => {
   const handleLeave = () => {
     hangUp();
     if (scoreResult) {
-      const myId = as === "host" ? scoreResult.hostInterviewId : scoreResult.guestInterviewId;
+      const myId = verifiedAs === "host" ? scoreResult.hostInterviewId : scoreResult.guestInterviewId;
       if (myId) { navigate(`/interview/${myId}`); return; }
     }
     navigate("/dashboard");
@@ -239,7 +289,8 @@ const FriendCallRoom = () => {
      LOADING
   ════════════════════════════════════════════════════ */
   if (!token || !user) return null;
-  if (loadingMeta)    return <Loader text="Connecting to room..." />;
+  // Wait for role verification before rendering — prevents a flash of wrong role
+  if (loadingMeta || !roleVerified) return <Loader text="Connecting to room..." />;
 
   /* ════════════════════════════════════════════════════
      ERROR
@@ -262,7 +313,7 @@ const FriendCallRoom = () => {
     const verdict = scoreResult?.candidateVerdict ?? null;
     const vColor  = VERDICT_COLOR[verdict]  || "#94a3b8";
     const vEmoji  = VERDICT_EMOJI[verdict]  || "📋";
-    const circumference = 2 * Math.PI * 50; // r=50
+    const circumference = 2 * Math.PI * 50;
 
     return (
       <div className="fcr-root">
@@ -298,7 +349,6 @@ const FriendCallRoom = () => {
             </div>
           )}
 
-          {/* Per-question summary with interviewer notes / feedback */}
           {questions.length > 0 && (
             <div className="fcr-end-breakdown">
               <h3 className="fcr-end-breakdown-title">📝 Interviewer Feedback</h3>
@@ -429,7 +479,7 @@ const FriendCallRoom = () => {
             <div className="fcr-tile fcr-tile-local">
               <div className="fcr-tile-inner">
                 {localStream
-                  ? <video ref={localVideoRef} autoPlay playsInline muted
+                  ? <video ref={attachLocalVideo} autoPlay playsInline muted
                       className={camOn ? "" : "fcr-vid-hidden"} />
                   : <div className="fcr-tile-placeholder"><div className="fcr-cam-spin"/>Starting camera...</div>
                 }
@@ -452,7 +502,7 @@ const FriendCallRoom = () => {
             <div className="fcr-tile fcr-tile-remote">
               <div className="fcr-tile-inner">
                 {remoteStream
-                  ? <video ref={remoteVideoRef} autoPlay playsInline
+                  ? <video ref={attachRemoteVideo} autoPlay playsInline
                       className={peerCamOff ? "fcr-vid-hidden" : ""} />
                   : <div className="fcr-tile-placeholder">
                       {peerPresent
@@ -555,7 +605,6 @@ const FriendCallRoom = () => {
           {activeTab === "interview" && (
             <div className="fcr-tab-body">
               {!started ? (
-                /* Pre-start */
                 <div className="fcr-prestart">
                   <div className="fcr-prestart-icon">🎯</div>
                   <h3>{ROLE_LABELS[roomMeta?.role] || roomMeta?.role || "Interview"}</h3>
@@ -589,7 +638,6 @@ const FriendCallRoom = () => {
                   )}
                 </div>
               ) : (
-                /* Active question display */
                 <div className="fcr-active">
                   <div className="fcr-q-header">
                     <span className="fcr-q-label">Question {questionIndex + 1} of {questions.length}</span>
@@ -601,14 +649,12 @@ const FriendCallRoom = () => {
 
                   <div className="fcr-q-box">{currentQ}</div>
 
-                  {/* Candidate hint */}
                   {!isInterviewer && (
                     <div className="fcr-cand-hint">
                       🎤 Speak your answer clearly. Your interviewer will rate your response and navigate to the next question.
                     </div>
                   )}
 
-                  {/* Navigation (interviewer only) */}
                   {isInterviewer && (
                     <div className="fcr-q-nav">
                       <button className="fcr-nav-btn" onClick={handlePrev} disabled={questionIndex === 0}>
@@ -672,7 +718,6 @@ const FriendCallRoom = () => {
                     💾 Feedback saves instantly and appears in the candidate's final scorecard.
                   </p>
 
-                  {/* Mini-overview of all ratings so far */}
                   <div className="fcr-all-ratings">
                     {questions.map((q, i) => (
                       <div
@@ -685,9 +730,7 @@ const FriendCallRoom = () => {
                       >
                         <span className="fcr-rc-num">Q{i+1}</span>
                         <span className="fcr-rc-stars">
-                          {notes[i]?.rating
-                            ? "★".repeat(notes[i].rating)
-                            : "—"}
+                          {notes[i]?.rating ? "★".repeat(notes[i].rating) : "—"}
                         </span>
                       </div>
                     ))}

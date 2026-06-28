@@ -3,6 +3,7 @@ const User = require("../models/User");
 const { generateSessionFeedback } = require("../services/feedbackGenerator");
 const { tagTopic } = require("../utils/topicTagger");
 const { getAllBadgesWithStatus } = require("../services/badgeEngine");
+const { scoreAllAnswers } = require("../services/scoreAnswers");
 
 const startInterview = async (req, res) => {
   try {
@@ -26,11 +27,19 @@ const submitInterview = async (req, res) => {
     if (interview.completed) return res.status(400).json({ message: "Already submitted" });
 
     const { answers } = req.body;
-    interview.answers = answers.map((a) => ({ ...a, topic: tagTopic(a.questionText) }));
+
+    // AI-score each answer using Gemini (falls back to client score if transcript empty)
+    const aiScores = await scoreAllAnswers(answers);
+
+    interview.answers = answers.map((a, i) => ({
+      ...a,
+      score: aiScores[i],
+      topic: tagTopic(a.questionText),
+    }));
     interview.completed = true;
 
     const totalScore = Math.round(
-      answers.reduce((sum, a) => sum + (a.score || 0), 0) / answers.length
+      aiScores.reduce((sum, s) => sum + s, 0) / aiScores.length
     );
     interview.totalScore = totalScore;
     interview.verdict =

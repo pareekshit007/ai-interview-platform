@@ -5,11 +5,10 @@ const SIGNALING_URL = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")
   : "https://ai-interview-platform-rwh2.onrender.com";
 
-// Build ICE server config using exact Metered.ca URL format
 const buildIceServers = () => {
-  const username   = import.meta.env.VITE_TURN_USERNAME;
+  const username = import.meta.env.VITE_TURN_USERNAME;
   const credential = import.meta.env.VITE_TURN_CREDENTIAL;
-  const host       = import.meta.env.VITE_TURN_HOST || "global.relay.metered.ca";
+  const host = import.meta.env.VITE_TURN_HOST || "global.relay.metered.ca";
 
   const servers = [
     { urls: "stun:stun.l.google.com:19302" },
@@ -19,10 +18,10 @@ const buildIceServers = () => {
 
   if (username && credential) {
     servers.push(
-      { urls: `turn:${host}:80`,                       username, credential },
-      { urls: `turn:${host}:80?transport=tcp`,          username, credential },
-      { urls: `turn:${host}:443`,                      username, credential },
-      { urls: `turns:${host}:443?transport=tcp`,        username, credential },
+      { urls: `turn:${host}:80`, username, credential },
+      { urls: `turn:${host}:80?transport=tcp`, username, credential },
+      { urls: `turn:${host}:443`, username, credential },
+      { urls: `turns:${host}:443?transport=tcp`, username, credential },
     );
     console.log("✅ TURN server configured:", host);
   } else {
@@ -33,31 +32,43 @@ const buildIceServers = () => {
 };
 
 export const useWebRTC = ({ code, as, name }) => {
-  const [connected,    setConnected]    = useState(false);
-  const [peerPresent,  setPeerPresent]  = useState(false);
-  const [callActive,   setCallActive]   = useState(false);
-  const [localStream,  setLocalStream]  = useState(null);
+  const [connected, setConnected] = useState(false);
+  const [peerPresent, setPeerPresent] = useState(false);
+  const [callActive, setCallActive] = useState(false);
+  const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-  const [micOn,        setMicOn]        = useState(true);
-  const [camOn,        setCamOn]        = useState(true);
-  const [error,        setError]        = useState("");
-  const [roomData,     setRoomData]     = useState(null);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const [error, setError] = useState("");
+  const [roomData, setRoomData] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
 
-  const socketRef           = useRef(null);
-  const pcRef               = useRef(null);
-  const pendingCandidates   = useRef([]);
-  const localStreamRef      = useRef(null); // stable ref for cleanup
-  const pendingListeners    = useRef([]);   // handlers queued before socket ready
+  const socketRef = useRef(null);
+  const pcRef = useRef(null);
+  const pendingCandidates = useRef([]);
+  const localStreamRef = useRef(null);
+  const pendingListeners = useRef([]);
 
+  // ── Create a fresh PeerConnection, closing any stale one first ──
   const createPeerConnection = useCallback((stream) => {
+    // Close and discard any existing PC before making a new one
+    if (pcRef.current) {
+      try { pcRef.current.close(); } catch { }
+      pcRef.current = null;
+    }
+
     const pc = new RTCPeerConnection(buildIceServers());
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
-    pc.ontrack = (e) => { setRemoteStream(e.streams[0]); setCallActive(true); };
+    pc.ontrack = (e) => {
+      setRemoteStream(e.streams[0]);
+      setCallActive(true);
+    };
+
     pc.onicecandidate = (e) => {
       if (e.candidate) socketRef.current?.emit("webrtc:ice-candidate", { candidate: e.candidate });
     };
+
     pc.oniceconnectionstatechange = () => {
       console.log("ICE state:", pc.iceConnectionState);
       if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
@@ -68,13 +79,23 @@ export const useWebRTC = ({ code, as, name }) => {
         pc.restartIce();
       }
     };
+
     pc.onconnectionstatechange = () => {
       console.log("Connection state:", pc.connectionState);
-      if (["disconnected","failed","closed"].includes(pc.connectionState)) setCallActive(false);
+      if (["disconnected", "failed", "closed"].includes(pc.connectionState)) {
+        setCallActive(false);
+      }
     };
+
     pcRef.current = pc;
     return pc;
   }, []);
+
+  // ── Helper: is the current PC dead/missing? ──
+  const needsNewPC = () => {
+    if (!pcRef.current) return true;
+    return ["closed", "failed"].includes(pcRef.current.connectionState);
+  };
 
   useEffect(() => {
     if (!code || !as) return;
@@ -112,7 +133,7 @@ export const useWebRTC = ({ code, as, name }) => {
       });
       socketRef.current = socket;
 
-      // Flush any listeners that were registered before socket was ready
+      // Flush any listeners queued before socket was ready
       pendingListeners.current.forEach(({ event, handler }) => socket.on(event, handler));
       pendingListeners.current = [];
 
@@ -122,6 +143,8 @@ export const useWebRTC = ({ code, as, name }) => {
       });
 
       socket.on("reconnect", () => {
+        // Clear stale ICE candidates so they don't get applied to a new PC
+        pendingCandidates.current = [];
         socket.emit("room:join", { code, as, name });
       });
 
@@ -132,14 +155,19 @@ export const useWebRTC = ({ code, as, name }) => {
 
       socket.on("room:error", ({ message }) => setError(message));
 
+      // ── Host sends offer when guest joins ──
       socket.on("peer:joined", async ({ as: peerAs }) => {
         setPeerPresent(true);
-        // Host creates offer when guest joins
         if (as === "host") {
-          const pc = pcRef.current || createPeerConnection(stream);
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          socket.emit("webrtc:offer", { sdp: offer });
+          // Always create a fresh PC — old one may be stale from a previous attempt
+          const pc = createPeerConnection(stream);
+          try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            socket.emit("webrtc:offer", { sdp: offer });
+          } catch (err) {
+            console.error("Failed to create offer:", err);
+          }
         }
       });
 
@@ -149,24 +177,42 @@ export const useWebRTC = ({ code, as, name }) => {
         setRemoteStream(null);
       });
 
+      // ── Guest receives offer, creates answer ──
       socket.on("webrtc:offer", async ({ sdp }) => {
-        const pc = pcRef.current || createPeerConnection(stream);
-        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-        for (const c of pendingCandidates.current) { try { await pc.addIceCandidate(c); } catch {} }
-        pendingCandidates.current = [];
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit("webrtc:answer", { sdp: answer });
+        // Always create a fresh PC when we get an offer — handles reconnects cleanly
+        const pc = createPeerConnection(stream);
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+          // Flush any ICE candidates that arrived before the offer
+          for (const c of pendingCandidates.current) {
+            try { await pc.addIceCandidate(c); } catch { }
+          }
+          pendingCandidates.current = [];
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit("webrtc:answer", { sdp: answer });
+        } catch (err) {
+          console.error("Failed to handle offer:", err);
+        }
       });
 
       socket.on("webrtc:answer", async ({ sdp }) => {
-        if (pcRef.current) await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+        if (!pcRef.current) return;
+        try {
+          // Only set if we're in the right state (have a local description)
+          if (pcRef.current.signalingState === "have-local-offer") {
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+          }
+        } catch (err) {
+          console.error("Failed to set remote answer:", err);
+        }
       });
 
       socket.on("webrtc:ice-candidate", async ({ candidate }) => {
         if (pcRef.current?.remoteDescription) {
-          try { await pcRef.current.addIceCandidate(candidate); } catch {}
+          try { await pcRef.current.addIceCandidate(candidate); } catch { }
         } else {
+          // Queue candidates until remote description is set
           pendingCandidates.current.push(candidate);
         }
       });
@@ -178,18 +224,17 @@ export const useWebRTC = ({ code, as, name }) => {
     return () => {
       cancelled = true;
       socketRef.current?.disconnect();
-      pcRef.current?.close();
+      if (pcRef.current) { try { pcRef.current.close(); } catch { } pcRef.current = null; }
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, [code, as]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── onInterviewEvent: attach to socket immediately if ready, else queue ──
+  // ── Attach/detach socket event listeners ──
   const onInterviewEvent = useCallback((event, handler) => {
     if (socketRef.current) {
       socketRef.current.on(event, handler);
       return () => socketRef.current?.off(event, handler);
     } else {
-      // Queue for when socket connects
       pendingListeners.current.push({ event, handler });
       return () => {
         pendingListeners.current = pendingListeners.current.filter(
@@ -227,7 +272,7 @@ export const useWebRTC = ({ code, as, name }) => {
 
   const hangUp = useCallback(() => {
     socketRef.current?.disconnect();
-    pcRef.current?.close();
+    if (pcRef.current) { try { pcRef.current.close(); } catch { } pcRef.current = null; }
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     setCallActive(false);
   }, []);

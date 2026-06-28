@@ -40,8 +40,10 @@ export const InterviewProvider = ({ children }) => {
       const { interviewId: id }   = await startInterview({ role, difficulty, questions: qs, company });
       setQuestions(qs);
       setInterviewId(id);
+      return true; // ✅ FIX: signal success so InterviewSetup can navigate
     } catch (err) {
       setError(err.message || "Failed to start interview");
+      return false; // ✅ FIX: signal failure so InterviewSetup does NOT navigate
     } finally {
       setLoading(false);
     }
@@ -80,17 +82,19 @@ export const InterviewProvider = ({ children }) => {
     }
   };
 
-  const nextQuestion = (transcript, scoreOverride) => {
-    const analysis = analyzeAnswer(transcript);
-    const score    = scoreOverride ?? analysis.score;
+  const nextQuestion = (transcript, scoreOverride, analysisOverride) => {
+    // Use the already-computed analysis from the caller if provided,
+    // otherwise analyze here. This prevents double-analysis and stale-transcript bugs.
+    const analysis = analysisOverride || analyzeAnswer(transcript);
+    const score    = (scoreOverride != null) ? scoreOverride : analysis.score;
     const answerEntry = {
       questionIndex: currentIndex,
       questionText:  questions[currentIndex],
       transcript,
       score,
-      confidence: analysis.confidence,
-      clarity:    analysis.clarity,
-      sentiment:  analysis.sentiment,
+      confidence: analysisOverride?.confidence ?? analysis.confidence,
+      clarity:    analysisOverride?.clarity    ?? analysis.clarity,
+      sentiment:  analysisOverride?.sentiment  ?? analysis.sentiment,
     };
     setAnswers((prev) => [...prev, answerEntry]);
     setScores((prev)  => [...prev, score]);
@@ -116,13 +120,18 @@ export const InterviewProvider = ({ children }) => {
   const totalScore = scores.length > 0
     ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 
+  // ✅ FIX: compute real avg metrics from the actual per-answer numeric values
+  const avgMetric = (key) => answers.length
+    ? Math.round(answers.reduce((s, a) => s + (Number(a[key]) || 0), 0) / answers.length)
+    : 0;
+
   const results = {
     totalScore, interviewId,
     role: currentRole, difficulty: currentDifficulty, company: currentCompany,
-    confidence:    totalScore,
-    sentiment:     Math.max(totalScore - 10, 0),
-    clarity:       Math.max(totalScore - 5,  0),
-    communication: Math.max(totalScore - 8,  0),
+    confidence:    avgMetric("confidence"),
+    sentiment:     avgMetric("sentiment"),
+    clarity:       avgMetric("clarity"),
+    communication: avgMetric("confidence"), // same source as confidence
     verdict:
       totalScore >= 85 ? "Excellent"
       : totalScore >= 70 ? "Good"

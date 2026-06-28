@@ -619,3 +619,74 @@ body.dark .speaker-tip { background: rgba(251,191,36,0.08); color: #fbbf24; }
 }
 body.dark .saving-spinner { border-top-color: black; border-color: rgba(0,0,0,0.3); }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* ── Input mode toggle ──────────────────────────────────────────────────── */
+.input-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+.toggle-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.5);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toggle-btn.active {
+  background: rgba(0,229,255,0.15);
+  border-color: #00e5ff;
+  color: #00e5ff;
+  font-weight: 600;
+}
+.toggle-btn:hover:not(.active) {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── Text answer textarea ────────────────────────────────────────────────── */
+.answer-textarea {
+  width: 100%;
+  min-height: 130px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  padding: 12px 14px;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.answer-textarea:focus {
+  outline: none;
+  border-color: #00e5ff;
+  background: rgba(0,229,255,0.04);
+}
+.answer-textarea::placeholder {
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+}
+
+/* ── Switch to text button inside error ─────────────────────────────────── */
+.switch-to-text-btn {
+  display: block;
+  margin-top: 10px;
+  background: none;
+  border: 1px solid #00e5ff;
+  color: #00e5ff;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.switch-to-text-btn:hover {
+  background: rgba(0,229,255,0.1);
+}
