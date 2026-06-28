@@ -135,13 +135,14 @@ const InterviewSetup = () => {
   const handleStart = async () => {
     cameraStreamRef.current?.getTracks().forEach(t => t.stop());
     micStreamRef.current?.getTracks().forEach(t => t.stop());
-    await startInterviewSession(role, difficulty, company);
-    navigate(`/interview-room/${role}`);
+    // ✅ FIX: Only navigate if session started successfully (questions loaded)
+    const ok = await startInterviewSession(role, difficulty, company);
+    if (ok) navigate(`/interview-room/${role}`);
   };
 
   const roleInfo     = ROLE_LABELS[role] || { label: role, emoji: "💼" };
   const diffConf      = DIFFICULTY_CONFIG[difficulty];
-  const canStart       = camera && mic;
+  const canStart       = mic; // camera is optional — mic is required for speech recognition
   const selectedCompany = companies.find(c => c.key === company) || null;
 
   return (
@@ -260,14 +261,14 @@ const InterviewSetup = () => {
           {/* ── STEP 2: Device Check ── */}
           {step === 2 && (
             <div className="setup-section">
-              <p className="section-label">Test your camera and microphone</p>
+              <p className="section-label">Test your microphone (required) and camera (optional)</p>
 
               <div className="device-grid">
                 {/* Camera */}
                 <div className={`device-card ${camera ? "on" : ""}`} onClick={checkCamera}>
                   <div className="device-icon">{camTesting ? "⏳" : camera ? "✅" : "📷"}</div>
                   <div className="device-info">
-                    <strong>Camera</strong>
+                    <strong>Camera <span style={{ fontSize: "11px", opacity: 0.6 }}>(optional)</span></strong>
                     <small>{camTesting ? "Testing…" : camera ? "Working" : "Click to test"}</small>
                   </div>
                   <div className="device-toggle">
@@ -309,7 +310,7 @@ const InterviewSetup = () => {
                   disabled={!canStart}
                   onClick={() => setStep(3)}
                 >
-                  Continue → Review
+                  {canStart ? "Continue → Review" : "🎤 Enable mic to continue"}
                 </button>
               </div>
             </div>
@@ -343,7 +344,9 @@ const InterviewSetup = () => {
                 </div>
                 <div className="summary-row">
                   <span className="summary-label">Devices</span>
-                  <span className="summary-value">✅ Camera &amp; mic ready</span>
+                  <span className="summary-value">
+                    {camera ? "✅ Camera & mic ready" : "✅ Mic ready · 📷 Camera off"}
+                  </span>
                 </div>
                 <div className="summary-row">
                   <span className="summary-label">AI Profile</span>

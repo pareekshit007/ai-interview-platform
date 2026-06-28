@@ -22,21 +22,18 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const notifRef    = useRef(null);
 
-  // Scroll shadow
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setMenuOpen(false);
     setDropdownOpen(false);
     setNotifOpen(false);
   }, [location.pathname]);
 
-  // Click outside closes dropdowns
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
@@ -46,7 +43,6 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Fetch real notifications from backend
   const fetchNotifications = async () => {
     if (!isAuth) return;
     setNotifLoading(true);
@@ -54,13 +50,12 @@ const Navbar = () => {
       const data = await api.get("/notifications");
       setNotifications(data);
     } catch {
-      // silently fail — don't break navbar
+      // silently fail
     } finally {
       setNotifLoading(false);
     }
   };
 
-  // Auto-fetch on every route change
   useEffect(() => { fetchNotifications(); }, [location.pathname]);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
@@ -99,7 +94,6 @@ const Navbar = () => {
 
         {/* Right actions */}
         <div className="nav-right">
-          {/* Theme toggle */}
           <button
             className="nav-icon-btn theme-toggle"
             onClick={toggleTheme}
@@ -127,9 +121,7 @@ const Navbar = () => {
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                   </svg>
-                  {unreadCount > 0 && (
-                    <span className="notif-badge">{unreadCount}</span>
-                  )}
+                  {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
                 </button>
 
                 {notifOpen && (
@@ -262,7 +254,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile drawer overlay */}
+      {/* Mobile overlay */}
       <div
         className={`mobile-overlay ${menuOpen ? "active" : ""}`}
         onClick={() => setMenuOpen(false)}
@@ -298,7 +290,6 @@ const Navbar = () => {
           {isAuth && <li><NavLink to="/roles">🎭 Roles</NavLink></li>}
           {isAuth && <li><NavLink to="/dashboard">📊 Dashboard</NavLink></li>}
           {isAuth && <li><NavLink to="/interview-history">📋 History</NavLink></li>}
-          {isAuth && <li><NavLink to="/achievements">🏆  Achievements</NavLink></li>}
           {isAuth && <li><NavLink to="/profile">👤 Profile</NavLink></li>}
           <li><NavLink to="/contact">📬 Contact</NavLink></li>
         </ul>

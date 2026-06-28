@@ -175,17 +175,36 @@ const validateSubmitInterview = [
     .optional()
     .isFloat({ min: 0, max: 100 }).withMessage("score must be 0–100"),
 
+  // ✅ FIX: Accept numeric 0-100 OR legacy string labels (High/Medium/Low etc.)
   body("answers.*.confidence")
     .optional()
-    .isFloat({ min: 0, max: 100 }).withMessage("confidence must be 0–100"),
+    .custom((val) => {
+      if (val === undefined || val === null) return true;
+      if (typeof val === "string") return true; // legacy string labels
+      const n = Number(val);
+      if (!isNaN(n) && n >= 0 && n <= 100) return true;
+      throw new Error("confidence must be 0–100 or a label string");
+    }),
 
   body("answers.*.clarity")
     .optional()
-    .isFloat({ min: 0, max: 100 }).withMessage("clarity must be 0–100"),
+    .custom((val) => {
+      if (val === undefined || val === null) return true;
+      if (typeof val === "string") return true;
+      const n = Number(val);
+      if (!isNaN(n) && n >= 0 && n <= 100) return true;
+      throw new Error("clarity must be 0–100 or a label string");
+    }),
 
   body("answers.*.sentiment")
     .optional()
-    .isFloat({ min: 0, max: 100 }).withMessage("sentiment must be 0–100"),
+    .custom((val) => {
+      if (val === undefined || val === null) return true;
+      if (typeof val === "string") return true;
+      const n = Number(val);
+      if (!isNaN(n) && n >= 0 && n <= 100) return true;
+      throw new Error("sentiment must be 0–100 or a label string");
+    }),
 
   handleValidation,
 ];

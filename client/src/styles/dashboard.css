@@ -757,3 +757,40 @@ body.light .db-footer-strip {
   border-color: rgba(13,122,95,0.15);
 }
 body.light .db-strip-text { color: #4a5568; }
+
+/* ── 4-card secondary row (History · Progress · Profile · Achievements) ── */
+.db-action-secondary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);   /* was 3, now 4 */
+  gap: 12px;
+}
+
+/* Achievements card — golden glow accent */
+.db-action-achievements {
+  border-color: rgba(245, 158, 11, 0.2) !important;
+  background: linear-gradient(135deg,
+    rgba(245,158,11,0.06) 0%,
+    rgba(245,158,11,0.02) 100%) !important;
+}
+.db-action-achievements:hover {
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12) !important;
+  transform: translateY(-3px);
+}
+.db-action-achievements .db-action-s-icon {
+  filter: drop-shadow(0 0 6px rgba(245,158,11,0.5));
+}
+
+/* Responsive — collapse to 2×2 on tablet */
+@media (max-width: 900px) {
+  .db-action-secondary-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Single column on mobile */
+@media (max-width: 480px) {
+  .db-action-secondary-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

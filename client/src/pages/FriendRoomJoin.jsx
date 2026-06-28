@@ -19,7 +19,6 @@ const FriendRoomJoin = () => {
   const [room, setRoom]       = useState(null);
   const [error, setError]     = useState("");
 
-  // Check if user is logged in
   const token    = localStorage.getItem("token");
   const userRaw  = localStorage.getItem("user");
   const user     = userRaw ? (() => { try { return JSON.parse(userRaw); } catch { return null; } })() : null;
@@ -34,15 +33,15 @@ const FriendRoomJoin = () => {
 
   const handleJoin = () => {
     if (!isLoggedIn) {
-      // Save room code so we can redirect back after login
       sessionStorage.setItem("friendRoomRedirect", `/friend-interview/join/${code}`);
       navigate("/login");
       return;
     }
+    // Always append ?as=guest — the person clicking this link is always the guest
     navigate(`/friend-interview/room/${code}?as=guest`);
   };
 
-  // If coming back from login, auto-redirect
+  // If coming back from login, auto-redirect into the room as guest
   useEffect(() => {
     if (isLoggedIn && room && !loading) {
       const redirect = sessionStorage.getItem("friendRoomRedirect");
@@ -70,7 +69,10 @@ const FriendRoomJoin = () => {
     );
   }
 
-  const isInterviewer = room?.hostIsInterviewer ? false : true;
+  // hostIsInterviewer = true  → host is interviewer, guest is candidate
+  // hostIsInterviewer = false → host is candidate,   guest is interviewer
+  // The person on this page is always the GUEST, so:
+  const guestIsInterviewer = room?.hostIsInterviewer === false;
 
   return (
     <div className="fr-root">
@@ -90,7 +92,7 @@ const FriendRoomJoin = () => {
           <div className="fr-invite-summary">
             <div className="fr-invite-row">
               <span>Your role</span>
-              <strong>{isInterviewer ? "🧑‍💼 Interviewer" : "🎤 Candidate"}</strong>
+              <strong>{guestIsInterviewer ? "🧑‍💼 Interviewer" : "🎤 Candidate"}</strong>
             </div>
             <div className="fr-invite-row">
               <span>Questions</span>

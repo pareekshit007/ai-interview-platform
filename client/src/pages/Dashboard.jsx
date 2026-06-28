@@ -60,7 +60,7 @@ const Dashboard = () => {
       {loading && <Loader text="Loading your dashboard..." />}
 
       <div className="db-root">
-        {/* ── Ambient background ── */}
+        {/* Ambient background */}
         <div className="db-bg">
           <div className="db-orb db-orb1" />
           <div className="db-orb db-orb2" />
@@ -70,7 +70,7 @@ const Dashboard = () => {
 
         <div className="db-wrap">
 
-          {/* ── HEADER ── */}
+          {/* HEADER */}
           <header className="db-header">
             <div className="db-header-left">
               <span className="db-tag">DASHBOARD</span>
@@ -105,13 +105,13 @@ const Dashboard = () => {
             </div>
           </header>
 
-          {/* ── STATS ROW ── */}
+          {/* STATS ROW */}
           <div className="db-stats">
             {[
-              { icon: "◈", label: "Total Sessions",  value: stats.total,             color: "#00f5a0" },
-              { icon: "◉", label: "Average Score",   value: `${stats.avgScore}%`,    color: "#3b82f6" },
-              { icon: "◆", label: "Best Score",      value: `${stats.bestScore}%`,   color: "#f59e0b" },
-              { icon: "◎", label: "Last Role",       value: stats.lastRole,           color: "#a78bfa" },
+              { icon: "◈", label: "Total Sessions", value: stats.total,           color: "#00f5a0" },
+              { icon: "◉", label: "Average Score",  value: `${stats.avgScore}%`,  color: "#3b82f6" },
+              { icon: "◆", label: "Best Score",     value: `${stats.bestScore}%`, color: "#f59e0b" },
+              { icon: "◎", label: "Last Role",      value: stats.lastRole,         color: "#a78bfa" },
             ].map((s, i) => (
               <div key={i} className="db-stat" style={{ "--accent": s.color, animationDelay: `${i * 0.1}s` }}>
                 <div className="db-stat-icon" style={{ color: s.color }}>{s.icon}</div>
@@ -124,17 +124,14 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* ── MAIN GRID ── */}
+          {/* MAIN GRID */}
           <div className="db-main">
 
             {/* LEFT — Actions */}
             <div className="db-actions">
               <h2 className="db-section-title">Quick Actions</h2>
 
-              <div
-                className="db-action-primary"
-                onClick={() => navigate("/roles")}
-              >
+              <div className="db-action-primary" onClick={() => navigate("/roles")}>
                 <div className="db-action-glow" />
                 <div className="db-action-content">
                   <div className="db-action-icon">⚡</div>
@@ -146,10 +143,7 @@ const Dashboard = () => {
                 <div className="db-action-arrow">→</div>
               </div>
 
-              <div
-                className="db-action-primary db-action-friend"
-                onClick={() => navigate("/friend-interview/create")}
-              >
+              <div className="db-action-primary db-action-friend" onClick={() => navigate("/friend-interview/create")}>
                 <div className="db-action-glow" />
                 <div className="db-action-content">
                   <div className="db-action-icon">👥</div>
@@ -161,6 +155,7 @@ const Dashboard = () => {
                 <div className="db-action-arrow">→</div>
               </div>
 
+              {/* ── Secondary cards: History · Progress · Profile · Achievements ── */}
               <div className="db-action-secondary-row">
                 <div className="db-action-secondary" onClick={() => navigate("/interview-history")}>
                   <div className="db-action-s-icon">📋</div>
@@ -170,6 +165,7 @@ const Dashboard = () => {
                   </div>
                   <span>→</span>
                 </div>
+
                 <div className="db-action-secondary" onClick={() => navigate("/progress")}>
                   <div className="db-action-s-icon">📈</div>
                   <div>
@@ -178,11 +174,25 @@ const Dashboard = () => {
                   </div>
                   <span>→</span>
                 </div>
+
                 <div className="db-action-secondary" onClick={() => navigate("/profile")}>
                   <div className="db-action-s-icon">👤</div>
                   <div>
                     <h4>Profile</h4>
                     <p>Update info</p>
+                  </div>
+                  <span>→</span>
+                </div>
+
+                {/* ── NEW: Achievements card ── */}
+                <div
+                  className="db-action-secondary db-action-achievements"
+                  onClick={() => navigate("/achievements")}
+                >
+                  <div className="db-action-s-icon">🏆</div>
+                  <div>
+                    <h4>Achievements</h4>
+                    <p>Badges & certs</p>
                   </div>
                   <span>→</span>
                 </div>
@@ -229,7 +239,7 @@ const Dashboard = () => {
 
           </div>
 
-          {/* ── MOTIVATIONAL FOOTER ── */}
+          {/* MOTIVATIONAL FOOTER */}
           <div className="db-footer-strip">
             <span className="db-strip-text">
               {stats.total === 0
