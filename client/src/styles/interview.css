@@ -15,7 +15,7 @@
 
 /* 🌙 DARK THEME (ORIGINAL) */
 body.dark .interview-page {
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: #080c14;
   color: #e0f7fa;
 }
 
@@ -250,7 +250,7 @@ body.dark .neon-btn {
 
 /* 🌙 DARK */
 body.dark .roles-container {
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: #080c14;
   color: #ffffff;
 }
 
@@ -540,8 +540,29 @@ body.dark .perm-error {
   letter-spacing: 1px;
   color: #6366f1;
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 body.dark .question-label { color: #00e5ff; }
+.practice-mode-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 999px;
+  padding: 3px 10px;
+  cursor: default;
+}
+body.dark .practice-mode-badge {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+}
 .question-text {
   font-size: 1.15rem;
   line-height: 1.7;
@@ -689,4 +710,19 @@ body.dark .saving-spinner { border-top-color: black; border-color: rgba(0,0,0,0.
 }
 .switch-to-text-btn:hover {
   background: rgba(0,229,255,0.1);
+}
+
+/* ── Background orbs + grid (matches dashboard) ── */
+.interview-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.interview-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--orb-opacity, 0.13); }
+.interview-orb1 { width:500px;height:500px;background:radial-gradient(circle,#00f5a0,transparent);top:-150px;left:-150px;animation:ivFloat 12s ease-in-out infinite alternate; }
+.interview-orb2 { width:400px;height:400px;background:radial-gradient(circle,#3b82f6,transparent);bottom:-120px;right:-120px;animation:ivFloat 15s ease-in-out infinite alternate-reverse; }
+.interview-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:40px 40px;opacity:var(--grid-opacity,1); }
+@keyframes ivFloat { from{transform:translate(0,0) scale(1)} to{transform:translate(26px,16px) scale(1.08)} }
+
+/* Ensure content sits above orb background */
+.interview-layout,
+.audio-mode-card {
+  position: relative;
+  z-index: 1;
 }

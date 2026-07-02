@@ -322,3 +322,36 @@
   .fr-role-grid { grid-template-columns: 1fr; }
   .fr-card { padding: 1.5rem 1.25rem; }
 }
+/* ═══════════════════════════════════
+   LIGHT MODE — Friend Room (Create/Join)
+═══════════════════════════════════ */
+body.light .fr-root   { background: #f0f4f8; color: #1e2a35; }
+body.light .fr-bg     { display: none; }
+body.light .fr-tag    { color: #0d7a5f; background: rgba(13,122,95,0.08); border-color: rgba(13,122,95,0.2); }
+body.light .fr-title  { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; }
+body.light .fr-sub    { color: #606778; }
+
+body.light .fr-card   { background: #fff; border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+body.light .fr-code-box { background: #f1f3f6; border-color: rgba(0,0,0,0.12); }
+body.light .fr-code   { color: #1e2a35 !important; }
+body.light .fr-name-input { background: #f1f3f6; border-color: rgba(0,0,0,0.14); color: #1e2a35; }
+body.light .fr-name-input:focus { border-color: #0d7a5f !important; }
+body.light .fr-link-row { background: #f1f3f6; border-color: rgba(0,0,0,0.1); }
+body.light .fr-invite-row { background: rgba(13,122,95,0.04); border-color: rgba(13,122,95,0.15); }
+body.light .fr-invite-summary { color: #606778; }
+body.light .fr-diff-row { background: #f1f3f6; border-color: rgba(0,0,0,0.08); }
+body.light .fr-diff-chip { background: rgba(0,0,0,0.06); color: #606778; border-color: rgba(0,0,0,0.1); }
+body.light .fr-diff-chip.selected { background: rgba(13,122,95,0.1); border-color: #0d7a5f; color: #0d7a5f; }
+body.light .fr-role-chip { background: rgba(0,0,0,0.06); color: #606778; border-color: rgba(0,0,0,0.1); }
+body.light .fr-role-chip.selected { background: rgba(13,122,95,0.1); border-color: #0d7a5f; color: #0d7a5f; }
+body.light .fr-create-btn { background: linear-gradient(135deg,#0d7a5f,#2563eb) !important; color: #fff !important; }
+body.light .fr-toggle { background: #e2e8f0; }
+body.light .fr-toggle-option { color: #606778; }
+body.light .fr-toggle-option.active { color: #0d7a5f; }
+body.light .fr-toggle-thumb { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+body.light .fr-error-card { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+body.light .fr-success { background: rgba(13,122,95,0.08); border-color: rgba(13,122,95,0.2); color: #0d7a5f; }
+body.light .fr-no-account-note,
+body.light .fr-logged-in-note,
+body.light .fr-localhost-warning { color: #606778; }
+body.light .fr-signup-link { color: #0d7a5f; }

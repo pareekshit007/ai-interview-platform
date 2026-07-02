@@ -11,6 +11,7 @@ const friendRoomSchema = new mongoose.Schema(
     difficulty:  { type: String, default: "medium" },
     company:     { type: String, default: null },
     questions:   [{ type: String }],
+    questionsSource: { type: String, enum: ["ai", "fallback"], default: "ai" },
     hostIsInterviewer: { type: Boolean, default: true },
     status: {
       type: String,

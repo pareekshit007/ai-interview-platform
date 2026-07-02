@@ -11,7 +11,7 @@ const generateRoomCode = customAlphabet(CODE_ALPHABET, 6);
 const createRoom = async (req, res) => {
   try {
     const { role = "frontend", difficulty = "medium", company = null, hostIsInterviewer = true } = req.body;
-    const questions = await generateQuestions(role, difficulty, 5, { company });
+    const { questions, source } = await generateQuestions(role, difficulty, 5, { company });
 
     let code, exists = true, attempts = 0;
     do {
@@ -25,6 +25,7 @@ const createRoom = async (req, res) => {
       host: req.user._id,
       hostName: req.user.name || "Host",
       role, difficulty, company, questions,
+      questionsSource: source || "ai",
       hostIsInterviewer,
       status: "waiting",
     });
@@ -36,7 +37,8 @@ const createRoom = async (req, res) => {
       difficulty: room.difficulty,
       company: room.company,
       hostIsInterviewer: room.hostIsInterviewer,
-      joinUrl: `${process.env.CLIENT_URL?.split(",")[0] || ""}/friend-interview/join/${room.code}`,
+      questionsSource: room.questionsSource,
+      joinUrl: `${(process.env.CLIENT_URLS || process.env.CLIENT_URL || "").split(",")[0].trim()}/friend-interview/join/${room.code}`,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -52,6 +54,7 @@ const getRoomByCode = async (req, res) => {
 
     res.json({
       code: room.code,
+      hostId: room.host.toString(),       // ← needed for client-side role verification
       hostName: room.hostName,
       guestName: room.guestName,
       role: room.role,
@@ -60,6 +63,7 @@ const getRoomByCode = async (req, res) => {
       status: room.status,
       hostIsInterviewer: room.hostIsInterviewer,
       questionCount: room.questions.length,
+      questionsSource: room.questionsSource,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -103,18 +107,30 @@ const finishRoom = async (req, res) => {
 
     const { candidateAnswers = [], guestUserId = null } = req.body;
 
-    // ── Compute score from star ratings (1-5 → 0-100) ──
+    // ── Compute candidate score from star ratings (1-5 → 0-100) ──
     const rated = candidateAnswers.filter(a => a.rating > 0);
     const avgRating = rated.length
       ? rated.reduce((s, a) => s + a.rating, 0) / rated.length
-      : 2.5; // default middle if no ratings
+      : 2.5;
     const candidateScore = Math.round((avgRating / 5) * 100);
     const candidateVerdict =
       candidateScore >= 85 ? "Excellent" :
       candidateScore >= 70 ? "Good" :
       candidateScore >= 50 ? "Average" : "Needs Work";
 
-    // Build answer objects for the Interview document
+    // Interviewer score is fixed at 100 (they ran the session, not being evaluated)
+    const interviewerScore   = 100;
+    const interviewerVerdict = "Excellent";
+
+    // Determine who is candidate vs interviewer
+    // hostIsInterviewer=true  → host=interviewer, guest=candidate
+    // hostIsInterviewer=false → host=candidate,   guest=interviewer
+    const hostScore   = room.hostIsInterviewer ? interviewerScore   : candidateScore;
+    const hostVerdict = room.hostIsInterviewer ? interviewerVerdict : candidateVerdict;
+    const guestScore   = room.hostIsInterviewer ? candidateScore   : interviewerScore;
+    const guestVerdict = room.hostIsInterviewer ? candidateVerdict : interviewerVerdict;
+
+    // Build answer objects
     const answers = candidateAnswers.map((a, i) => ({
       questionIndex: i,
       questionText: a.questionText || room.questions[i] || "",
@@ -127,21 +143,25 @@ const finishRoom = async (req, res) => {
       topic: "General",
     }));
 
-    const interviewBase = {
-      role: room.role,
-      difficulty: room.difficulty,
-      company: room.company,
-      questions: room.questions,
-      answers,
-      totalScore: candidateScore,
-      verdict: candidateVerdict,
-      aiFeedback: `Friend interview session. Interviewer notes recorded per question. Overall rating: ${candidateVerdict} (${candidateScore}/100).`,
+    const hostInterviewBase = {
+      role: room.role, difficulty: room.difficulty, company: room.company,
+      questions: room.questions, answers,
+      totalScore: hostScore, verdict: hostVerdict,
+      aiFeedback: `Friend interview session. You were the ${room.hostIsInterviewer ? "interviewer" : "candidate"}. ${room.hostIsInterviewer ? "You conducted the session." : `Candidate rating: ${candidateVerdict} (${candidateScore}/100).`}`,
+      completed: true,
+    };
+
+    const guestInterviewBase = {
+      role: room.role, difficulty: room.difficulty, company: room.company,
+      questions: room.questions, answers,
+      totalScore: guestScore, verdict: guestVerdict,
+      aiFeedback: `Friend interview session. You were the ${room.hostIsInterviewer ? "candidate" : "interviewer"}. ${room.hostIsInterviewer ? `Candidate rating: ${candidateVerdict} (${candidateScore}/100).` : "You conducted the session."}`,
       completed: true,
     };
 
     // ── Create Interview doc for host ──
     let hostInterviewId = null;
-    const hostInterview = await Interview.create({ ...interviewBase, user: room.host });
+    const hostInterview = await Interview.create({ ...hostInterviewBase, user: room.host });
     hostInterviewId = hostInterview._id;
     await updateStreak(room.host);
 
@@ -149,7 +169,7 @@ const finishRoom = async (req, res) => {
     let guestInterviewId = null;
     const guestId = room.guest || guestUserId;
     if (guestId) {
-      const guestInterview = await Interview.create({ ...interviewBase, user: guestId });
+      const guestInterview = await Interview.create({ ...guestInterviewBase, user: guestId });
       guestInterviewId = guestInterview._id;
       await updateStreak(guestId);
     }

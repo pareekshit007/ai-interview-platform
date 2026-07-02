@@ -13,51 +13,52 @@
 ================================ */
 :root,
 body.dark {
-  --bg-main:       #0b0b0b;
-  --bg-secondary:  #0f2027;
-  --bg-card:       rgba(18, 18, 18, 0.9);
-  --text-primary:  #f5f5f5;
-  --text-secondary:#cfd8dc;
-  --accent:        #00e5ff;
-  --accent-2:      #00bcd4;
-  --accent-soft:   rgba(0, 229, 255, 0.15);
-  --glass-bg:      rgba(255, 255, 255, 0.08);
-  --border-soft:   rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.18);
-
-  /* page gradients */
-  --page-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  --card-bg:       rgba(255, 255, 255, 0.04);
-  --card-border:   rgba(255, 255, 255, 0.08);
-  --input-bg:      rgba(255, 255, 255, 0.05);
-  --input-border:  rgba(255, 255, 255, 0.1);
+  --bg-main:       #080c14;
+  --bg-secondary:  #0d1117;
+  --bg-card:       rgba(255,255,255,0.03);
+  --text-primary:  #f1f5f9;
+  --text-secondary:#94a3b8;
+  --accent:        #00f5a0;
+  --accent-2:      #3b82f6;
+  --accent-soft:   rgba(0,245,160,0.12);
+  --glass-bg:      rgba(255,255,255,0.05);
+  --border-soft:   rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.14);
+  --page-gradient: #080c14;
+  --card-bg:       rgba(255,255,255,0.03);
+  --card-border:   rgba(255,255,255,0.07);
+  --input-bg:      rgba(255,255,255,0.05);
+  --input-border:  rgba(255,255,255,0.10);
   --muted:         #64748b;
   --muted-2:       #475569;
+  --orb-opacity:   0.13;
+  --grid-opacity:  0.02;
 }
 
 /* ===============================
    LIGHT MODE
 ================================ */
 body.light {
-  --bg-main:       #f2f3f5;
-  --bg-secondary:  #e8eaed;
-  --bg-card:       #f7f8fa;
+  --bg-main:       #f0f4f8;
+  --bg-secondary:  #ffffff;
+  --bg-card:       #ffffff;
   --text-primary:  #1e2a35;
   --text-secondary:#4a5568;
-  --accent:        #2b8a9e;
-  --accent-2:      #1f6e7e;
-  --accent-soft:   rgba(43, 138, 158, 0.12);
-  --glass-bg:      rgba(245, 246, 248, 0.85);
-  --border-soft:   rgba(0, 0, 0, 0.09);
-  --border-strong: rgba(0, 0, 0, 0.15);
-
-  --page-gradient: linear-gradient(135deg, #e8eaed, #edeef1);
-  --card-bg:       #f7f8fa;
-  --card-border:   rgba(0, 0, 0, 0.08);
-  --input-bg:      #eeeff2;
-  --input-border:  #d4d6db;
+  --accent:        #0d7a5f;
+  --accent-2:      #2563eb;
+  --accent-soft:   rgba(13,122,95,0.10);
+  --glass-bg:      rgba(255,255,255,0.90);
+  --border-soft:   rgba(0,0,0,0.09);
+  --border-strong: rgba(0,0,0,0.16);
+  --page-gradient: #f0f4f8;
+  --card-bg:       #ffffff;
+  --card-border:   rgba(0,0,0,0.10);
+  --input-bg:      #f1f3f6;
+  --input-border:  rgba(0,0,0,0.14);
   --muted:         #606778;
   --muted-2:       #4a5568;
+  --orb-opacity:   0.04;
+  --grid-opacity:  0.0;
 }
 
 /* ===============================
@@ -69,7 +70,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Smooth transitions — only on bg/color, not layout */
+/* Smooth transitions on theme switch */
 *, *::before, *::after {
   transition:
     background-color 0.25s ease,
@@ -79,7 +80,8 @@ body {
 }
 
 /* ===============================
-   PAGES THAT USE --page-gradient
+   PAGES — unified dark background
+   (replaces old teal gradient)
 ================================ */
 .fb-page,
 .sc-page,
@@ -88,589 +90,95 @@ body {
 .interview-page,
 .setup-page,
 .audio-mode-card {
-  background: var(--page-gradient);
+  background: var(--bg-main);
   color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ===============================
+   ORB BACKGROUNDS
+   Pages that have .db-bg / .pg-bg
+   etc. use --orb-opacity so they
+   fade out in light mode
+================================ */
+.db-orb, .pg-orb, .ach-orb,
+.rp-orb, .ct-orb {
+  opacity: var(--orb-opacity) !important;
+}
+
+.db-grid, .pg-grid, .ach-grid {
+  opacity: var(--grid-opacity) !important;
 }
 
 /* ===============================
    GENERIC CARD OVERRIDE
 ================================ */
-body.light .fb-card,
-body.light .sc-front,
-body.light .sc-back,
-body.light .ih-stat-card,
-body.light .ih-chart-card,
-body.light .ih-table-card,
-body.light .pr-section,
-body.light .pr-avatar-wrap,
-body.light .pr-completeness,
-body.light .pr-stats,
-body.light .pr-card,
-body.light .setup-card,
-body.light .diff-card,
-body.light .device-card,
-body.light .ready-summary,
-body.light .glass-card {
+.fb-card,
+.sc-front, .sc-back,
+.ih-stat-card, .ih-chart-card, .ih-table-card,
+.pr-section, .pr-avatar-wrap, .pr-completeness, .pr-stats, .pr-card,
+.setup-card, .diff-card, .device-card, .ready-summary,
+.glass-card,
+.recorder-card,
+.audio-mode-btn {
   background: var(--card-bg);
   border-color: var(--card-border);
   color: var(--text-primary);
+}
+
+body.light .fb-card,
+body.light .sc-front, body.light .sc-back,
+body.light .ih-stat-card, body.light .ih-chart-card, body.light .ih-table-card,
+body.light .pr-section, body.light .pr-avatar-wrap, body.light .pr-completeness,
+body.light .pr-stats, body.light .pr-card,
+body.light .setup-card, body.light .diff-card, body.light .device-card,
+body.light .ready-summary, body.light .glass-card,
+body.light .recorder-card, body.light .audio-mode-btn {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(0,0,0,0.12) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
 }
 
 /* ===============================
    INPUTS & TEXTAREAS
 ================================ */
-body.light input,
-body.light textarea,
-body.light select,
-body.light .pr-field input,
-body.light .pr-input,
-body.light .pr-textarea,
-body.light .ih-select {
+input, textarea, select,
+.pr-input, .pr-textarea, .ih-select {
   background: var(--input-bg);
   border-color: var(--input-border);
   color: var(--text-primary);
+}
+
+body.light input,
+body.light textarea,
+body.light select,
+body.light .pr-input,
+body.light .pr-textarea,
+body.light .ih-select {
+  background: var(--input-bg) !important;
+  border: 1.5px solid rgba(0,0,0,0.18) !important;
+  color: var(--text-primary) !important;
 }
 
 body.light input:focus,
 body.light textarea:focus {
-  border-color: rgba(0, 188, 212, 0.5);
+  border-color: rgba(13,122,95,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(13,122,95,0.10) !important;
   outline: none;
 }
 
 body.light input::placeholder,
-body.light textarea::placeholder {
-  color: #94a3b8;
-}
+body.light textarea::placeholder { color: #94a3b8; }
 
 /* ===============================
-   TEXT COLORS
+   TEXT — light mode
 ================================ */
-body.light .fb-para,
-body.light .fb-list li,
-body.light .fb-q-metrics,
-body.light .fb-q-transcript,
-body.light .fb-raw,
-body.light .pr-card-desc,
-body.light .pr-section-sub,
-body.light .ih-date,
-body.light .ready-tips li,
-body.light .diff-desc,
-body.light .diff-tag,
-body.light .sc-info-label,
-body.light .pr-field label,
-body.light .pr-comp-hint,
-body.light .pr-suggest-label,
-body.light .section-label,
-body.light .summary-label,
-body.light .score-ring-label,
-body.light .pb-label,
-body.light .ih-chart-sub,
-body.light .pr-hint,
-body.light .pr-empty,
-body.light .ct-label {
-  color: var(--muted);
-}
-
-body.light .fb-card-title,
-body.light .fb-q-text,
-body.light .ih-chart-header h3,
-body.light .ih-table-topbar h3,
-body.light .pr-name,
-body.light .pr-card-header strong,
-body.light .sc-info-val,
-body.light .ih-role,
-body.light .sc-title,
-body.light .fb-title {
+body.light {
   color: var(--text-primary);
 }
 
-body.light .fb-role-pill,
-body.light .sc-back-section-title,
-body.light .pr-degree,
-body.light .pr-section-title,
-body.light .pr-add-title,
-body.light .pr-tab.active,
-body.light .tips-label,
-body.light .ih-stat-value,
-body.light .pr-stat span {
-  color: var(--accent-2);
-}
-
-/* ===============================
-   ACCENTS / BORDERS
-================================ */
-body.light .fb-card-title {
-  border-color: rgba(0, 0, 0, 0.06);
-}
-
-body.light .summary-row {
-  border-color: var(--input-border);
-}
-
-body.light .sc-front-left {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 188, 212, 0.12);
-}
-
-body.light .sc-back-divider {
-  background: rgba(43, 138, 158, 0.12);
-}
-
-body.light .sc-flip-hint,
-body.light .sc-hint {
-  color: #94a3b8;
-}
-
-body.light .sc-metric-track,
-body.light .pb-track,
-body.light .ih-score-bar-track {
-  background: rgba(0, 0, 0, 0.07);
-}
-
-body.light .sc-role-pill,
-body.light .fb-role-pill,
-body.light .ih-count {
-  background: rgba(43, 138, 158, 0.1);
-  border-color: rgba(43, 138, 158, 0.18);
-}
-
-/* ===============================
-   PROGRESS BARS & RINGS
-================================ */
-body.light .pr-comp-track {
-  background: rgba(0, 0, 0, 0.07);
-}
-
-/* ===============================
-   TABS
-================================ */
-body.light .pr-tabs {
-  background: var(--input-bg);
-  border-color: rgba(0, 0, 0, 0.07);
-}
-
-body.light .pr-tab {
-  color: var(--muted);
-}
-
-body.light .pr-tab.active {
-  background: rgba(43, 138, 158, 0.1);
-  border-color: rgba(43, 138, 158, 0.2);
-}
-
-/* ===============================
-   BUTTONS
-================================ */
-body.light .nav-btn.ghost,
-body.light .pr-ghost-btn,
-body.light .fb-btn-ghost,
-body.light .sc-btn-ghost,
-body.light .ih-view-btn {
-  background: var(--input-bg);
-  border-color: var(--input-border);
-  color: var(--muted);
-}
-
-body.light .fb-btn-secondary,
-body.light .sc-btn-secondary {
-  background: rgba(43, 138, 158, 0.08);
-  border-color: rgba(43, 138, 158, 0.2);
-  color: var(--accent-2);
-}
-
-body.light .pr-save-btn,
-body.light .nav-btn.primary {
-  background: linear-gradient(135deg, #2b8a9e, #1f6e7e);
-  color: #ffffff;
-}
-
-body.light .pr-save-btn.saved {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-}
-
-body.light .pr-add-btn {
-  background: rgba(43, 138, 158, 0.1);
-  border-color: rgba(43, 138, 158, 0.2);
-  color: var(--accent-2);
-}
-
-body.light .pr-suggest-tag:hover {
-  background: rgba(43, 138, 158, 0.1);
-  border-color: rgba(43, 138, 158, 0.18);
-  color: var(--accent-2);
-}
-
-/* ===============================
-   TAGS / BADGES
-================================ */
-body.light .pr-tag {
-  background: rgba(99, 102, 241, 0.08);
-  border-color: rgba(99, 102, 241, 0.2);
-  color: #5b5ea6;
-}
-
-/* ===============================
-   FORMS — ADD CARDS
-================================ */
-body.light .pr-add-card {
-  background: rgba(43, 138, 158, 0.04);
-  border-color: rgba(43, 138, 158, 0.18);
-}
-
-body.light .pr-file-drop {
-  background: var(--input-bg);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-body.light .pr-resume-drop {
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-body.light .pr-resume-drop:hover,
-body.light .pr-resume-drop.has-file {
-  border-color: rgba(43, 138, 158, 0.3);
-  background: rgba(43, 138, 158, 0.04);
-}
-
-body.light .pr-resume-tips {
-  background: rgba(99, 102, 241, 0.04);
-  border-color: rgba(99, 102, 241, 0.12);
-}
-
-body.light .pr-tips-list li { color: var(--muted); }
-
-body.light .pr-icon-btn {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-/* ===============================
-   DIFFICULTY CARDS
-================================ */
-body.light .diff-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 4px 16px rgba(43, 138, 158, 0.12);
-}
-
-body.light .diff-topic {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--muted);
-}
-
-body.light .ready-tips {
-  background: rgba(43, 138, 158, 0.05);
-  border-color: rgba(43, 138, 158, 0.12);
-}
-
-/* ===============================
-   INTERVIEW ROOM
-================================ */
-body.light .recorder-card {
-  background: var(--input-bg);
-  border-color: var(--input-border);
-}
-
-body.light .question-text,
-body.light .recorder-text {
-  color: var(--text-primary);
-}
-
-body.light .word-count {
-  background: #e2e8f0;
-  color: var(--muted);
-}
-
-body.light .control-btn {
-  background: var(--input-bg);
-  border-color: var(--input-border);
-  color: var(--text-primary);
-}
-
-body.light .neon-btn {
-  background: linear-gradient(135deg, #2b8a9e, #1f6e7e);
-  color: #fff;
-}
-
-body.light .audio-mode-btn {
-  background: var(--input-bg);
-  border-color: var(--input-border);
-  color: var(--text-primary);
-}
-
-body.light .audio-mode-btn:hover {
-  border-color: var(--accent);
-}
-
-body.light .audio-mode-note {
-  background: var(--input-bg);
-  color: var(--muted);
-}
-
-body.light .speaker-tip {
-  background: #fffbeb;
-}
-
-/* ===============================
-   FEEDBACK SPECIFIC
-================================ */
-body.light .fb-hero {
-  background: var(--card-bg);
-  border-color: rgba(0, 0, 0, 0.07);
-}
-
-body.light .fb-q-card {
-  background: var(--input-bg);
-  border-color: rgba(0, 0, 0, 0.06);
-}
-
-body.light .fb-q-transcript {
-  background: var(--input-bg);
-  border-left-color: rgba(0, 188, 212, 0.3);
-}
-
-body.light .fb-no-feedback {
-  color: var(--muted);
-}
-
-/* ===============================
-   HISTORY
-================================ */
-body.light .ih-page {
-  color: var(--text-primary);
-}
-
-body.light .ih-hero h1 {
-  -webkit-text-fill-color: var(--text-primary);
-  background: none;
-}
-
-body.light .ih-hero p {
-  color: var(--muted);
-}
-
-body.light .ih-table-topbar {
-  border-color: rgba(0, 0, 0, 0.06);
-}
-
-body.light .ih-thead {
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--muted);
-}
-
-body.light .ih-row {
-  border-color: rgba(0, 0, 0, 0.04);
-}
-
-body.light .ih-row:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-body.light .chart-tooltip {
-  background: var(--card-bg);
-  border-color: rgba(43, 138, 158, 0.2);
-  color: var(--text-primary);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
-/* ===============================
-   DASHBOARD
-================================ */
-body.light .db-root {
-  background: #f0f4f8;
-  color: var(--text-primary);
-}
-
-body.light .db-orb { opacity: 0.05; }
-
-body.light .db-card,
-body.light .stat-card {
-  background: var(--card-bg);
-  border-color: rgba(0, 0, 0, 0.08);
-  color: var(--text-primary);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-}
-
-/* ===============================
-   HOME PAGE (hero always dark)
-================================ */
-body.light .hero {
-  filter: none; /* keep dark gradient */
-}
-
-/* sections below hero */
-body.light .features-section,
-body.light .how-it-works,
-body.light .stats-section,
-body.light .roles-section {
-  background: var(--bg-main);
-  color: var(--text-primary);
-}
-
-body.light .feature-card,
-body.light .step-card,
-body.light .role-card {
-  background: var(--card-bg);
-  border-color: var(--card-border);
-  color: var(--text-primary);
-}
-
-/* ===============================
-   AUTH PAGES (always dark gradient)
-================================ */
-body.light .auth-container {
-  filter: none;
-}
-
-/* ===============================
-   FOOTER — light mode
-================================ */
-body.light .footer {
-  background-image: none;
-  background: #1a2332;
-}
-
-body.light .footer-overlay {
-  background: linear-gradient(to bottom, rgba(18,28,42,0.92) 0%, rgba(10,15,26,0.97) 100%);
-}
-
-body.light .footer-logo       { color: #f1f5f9; }
-body.light .footer-logo span  { color: #38bdf8; }
-body.light .footer-tagline    { color: #94a3b8; }
-body.light .footer-badge      { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.22); color: #7dd3fc; }
-body.light .footer-col-title  { color: #38bdf8; }
-body.light .footer-col        { border-left-color: rgba(56,189,248,0.2); }
-body.light .footer-links a,
-body.light .footer-links span { color: #94a3b8; }
-body.light .footer-links a:hover { color: #e2e8f0; }
-body.light .footer-bottom     { border-top-color: rgba(56,189,248,0.15); color: #64748b; }
-body.light .footer-bottom-right { color: #64748b; }
-
-/* ── CARD VISIBILITY BOOST ── */
-body.light .fb-card,
-body.light .sc-front,
-body.light .sc-back,
-body.light .ih-stat-card,
-body.light .ih-chart-card,
-body.light .ih-table-card,
-body.light .pr-section,
-body.light .pr-avatar-wrap,
-body.light .pr-completeness,
-body.light .pr-stats,
-body.light .pr-card,
-body.light .setup-card,
-body.light .diff-card,
-body.light .device-card,
-body.light .ready-summary,
-body.light .glass-card {
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.07);
-  border-color: rgba(0,0,0,0.12) !important;
-}
-
-body.light .pr-add-card { border-color: rgba(43,138,158,0.25) !important; background: rgba(43,138,158,0.04); }
-body.light .ih-row      { border-color: rgba(0,0,0,0.07) !important; }
-
-/* ── TEXT VISIBILITY FIXES ── */
-body.light .fb-card-title          { color: #1e2a35 !important; border-color: rgba(0,0,0,0.08) !important; }
-body.light .sc-back-section-title  { color: #1f6e7e !important; }
-body.light .question-label         { color: #1f6e7e; }
-body.light .diff-label             { color: #1e2a35; }
-body.light .device-info strong     { color: #1e2a35; }
-body.light .device-info small      { color: #606778; }
-body.light .sc-info-val            { color: #1e2a35 !important; }
-body.light .sc-info-label          { color: #606778 !important; }
-body.light .timer-label            { color: #606778; }
-body.light .summary-value          { color: #1e2a35; }
-body.light .pr-card-header strong  { color: #1e2a35 !important; }
-body.light .pr-section-title       { color: #1f6e7e !important; }
-body.light .pr-tab.active          { color: #1f6e7e !important; }
-body.light .ih-stat-value          { color: #1f6e7e !important; }
-body.light .pr-stat span           { color: #1f6e7e !important; }
-body.light .pr-add-title           { color: #1f6e7e !important; }
-body.light .nav-btn.primary        { color: #ffffff !important; }
-body.light .recorder-header h4,
-body.light .recorder-card h4       { color: #1e2a35; }
-body.light .rec-live               { color: #c0392b; }
-body.light .word-count             { background: #dde1e7; color: #4a5568; }
-body.light .muted-text             { color: #606778; }
-body.light .placeholder-text       { color: #8a93a0; }
-body.light .perm-error             { background: #fef2f2; border-color: #fca5a5; color: #c0392b; }
-body.light .speaker-tip            { background: #fef9ec; color: #7a5c00; }
-body.light .fb-role-pill           { background: rgba(43,138,158,0.1); border-color: rgba(43,138,158,0.22); color: #1f6e7e; }
-body.light .fb-q-num               { background: rgba(43,138,158,0.1); color: #1f6e7e; }
-body.light .ih-count               { background: rgba(43,138,158,0.1); border-color: rgba(43,138,158,0.2); color: #1f6e7e; }
-body.light .sc-role-pill           { background: rgba(43,138,158,0.1); border-color: rgba(43,138,158,0.2); color: #1f6e7e; }
-body.light .fb-no-feedback         { color: #606778; }
-body.light .pr-degree              { color: #1f6e7e !important; }
-body.light .ih-view-btn            { background: rgba(43,138,158,0.08); border-color: rgba(43,138,158,0.22); color: #1f6e7e; }
-body.light .pr-tag                 { background: rgba(75,78,168,0.1); border-color: rgba(75,78,168,0.22); color: #3d3f9e; }
-body.light .diff-recommended       { background: #d97706; color: #fff; }
-body.light .recharts-cartesian-axis-tick text { fill: #606778 !important; }
-body.light .recharts-legend-item-text         { color: #4a5568 !important; }
-body.light .setup-step        { color: #606778; }
-body.light .setup-step.active { color: #1f6e7e; }
-body.light .setup-step.done   { color: #2e7d4f; }
-body.light .step-dot          { background: #dde1e7; color: #606778; }
-body.light .setup-step.active .step-dot { background: #1f6e7e; color: #fff; }
-body.light .setup-step.done   .step-dot { background: #2e7d4f; color: #fff; }
-body.light .step-line         { background: #d1d5db; }
-body.light .ih-back-btn       { color: #606778; }
-body.light .ih-back-btn:hover { color: #1f6e7e; }
-
-/* ===============================
-   SETUP ERROR
-================================ */
-body.light .setup-error {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #dc2626;
-}
-
-/* ===============================
-   LOADER
-================================ */
-body.light .loader-overlay {
-  background: rgba(240, 244, 248, 0.85);
-}
-
-body.light .loader-text {
-  color: var(--text-primary);
-}
-
-/* ===============================
-   CONTACT & ROLES PAGES
-================================ */
-body.light .ct-root,
-body.light .rp-root {
-  background: var(--bg-main);
-  color: var(--text-primary);
-}
-
-body.light .ct-orb,
-body.light .rp-orb {
-  opacity: 0.05;
-}
-
-/* ===============================
-   SCROLLBAR
-================================ */
-body.dark ::-webkit-scrollbar { width: 6px; }
-body.dark ::-webkit-scrollbar-track { background: #0f2027; }
-body.dark ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 3px; }
-
-body.light ::-webkit-scrollbar { width: 6px; }
-body.light ::-webkit-scrollbar-track { background: #e2e8f0; }
-body.light ::-webkit-scrollbar-thumb { background: rgba(0,188,212,0.35); border-radius: 3px; }
-
-/* ================================================
-   PASTE AT THE BOTTOM OF: global.css
-   Makes all text visibly darker in light mode
-================================================ */
-
-body.light h1,
-body.light h2,
-body.light h3,
-body.light h4,
-body.light h5,
-body.light h6 {
+body.light h1, body.light h2, body.light h3,
+body.light h4, body.light h5, body.light h6 {
   color: #1e2a35 !important;
   -webkit-text-fill-color: #1e2a35 !important;
   background: none !important;
@@ -678,83 +186,453 @@ body.light h6 {
   background-clip: unset !important;
 }
 
-body.light p,
-body.light span,
-body.light label,
-body.light li,
-body.light td,
-body.light th,
-body.light div {
-  color: #1e2a35;
+/* Gradient text exceptions — let specific components override */
+body.light .db-name,
+body.light .ach-title-grad,
+body.light .pg-title-grad {
+  background: linear-gradient(135deg,#0d7a5f,#2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
-body.light .muted,
-body.light small,
-body.light .sub,
-body.light .hint,
-body.light .caption {
-  color: #4a5568 !important;
+body.light p, body.light li,
+body.light td, body.light th { color: #1e2a35; }
+
+body.light small, body.light .muted,
+body.light .sub, body.light .hint { color: #606778 !important; }
+
+/* ===============================
+   SPECIFIC TEXT CLASSES — light
+================================ */
+body.light .fb-para, body.light .fb-list li,
+body.light .fb-q-metrics, body.light .fb-q-transcript,
+body.light .fb-raw, body.light .pr-card-desc,
+body.light .pr-section-sub, body.light .ih-date,
+body.light .ready-tips li, body.light .diff-desc,
+body.light .diff-tag, body.light .sc-info-label,
+body.light .pr-field label, body.light .pr-comp-hint,
+body.light .pr-suggest-label, body.light .section-label,
+body.light .summary-label, body.light .score-ring-label,
+body.light .pb-label, body.light .ih-chart-sub,
+body.light .pr-hint, body.light .pr-empty,
+body.light .ct-label, body.light .ach-sub,
+body.light .ach-hstat-lbl, body.light .pg-sub,
+body.light .ach-bp-count, body.light .ach-badge-desc,
+body.light .ach-lb-college, body.light .ach-cert-intro,
+body.light .ach-cert-meta { color: var(--muted) !important; }
+
+body.light .fb-card-title, body.light .fb-q-text,
+body.light .ih-chart-header h3, body.light .ih-table-topbar h3,
+body.light .pr-name, body.light .pr-card-header strong,
+body.light .sc-info-val, body.light .ih-role,
+body.light .sc-title, body.light .fb-title,
+body.light .ach-badge-name, body.light .ach-lb-name,
+body.light .ach-cert-role, body.light .ach-mrb-name,
+body.light .ach-title { color: var(--text-primary) !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; }
+
+body.light .fb-role-pill, body.light .sc-back-section-title,
+body.light .pr-degree, body.light .pr-section-title,
+body.light .pr-add-title, body.light .pr-tab.active,
+body.light .tips-label, body.light .ih-stat-value,
+body.light .pr-stat span, body.light .ach-tag,
+body.light .db-tag, body.light .pg-tag { color: var(--accent) !important; }
+
+/* ===============================
+   ACCENT ELEMENTS — light
+================================ */
+body.light .fb-role-pill, body.light .sc-role-pill,
+body.light .ih-count, body.light .ach-you-tag {
+  background: rgba(13,122,95,0.08);
+  border-color: rgba(13,122,95,0.18);
+  color: #0d7a5f;
 }
 
-/* ================================================
-   PASTE AT THE BOTTOM OF: global.css
-   Darker card/box borders in light mode
-================================================ */
-
-body.light .db-card,
-body.light .stat-card,
-body.light .glass-card,
-body.light .diff-card,
-body.light .role-card,
-body.light .feature-card,
-body.light .step-card,
-body.light .setup-card,
-body.light .device-card,
-body.light .fb-card,
-body.light .fb-q-card,
-body.light .fb-hero,
-body.light .sc-front,
-body.light .sc-back,
-body.light .ih-stat-card,
-body.light .ih-chart-card,
-body.light .ih-table-card,
-body.light .pr-section,
-body.light .pr-card,
-body.light .pr-add-card,
-body.light .pr-completeness,
-body.light .pr-stats,
-body.light .pr-avatar-wrap,
-body.light .ready-summary,
-body.light .recorder-card,
-body.light .audio-mode-btn,
-body.light .ct-info-card,
-body.light .ct-contact-card,
-body.light input,
-body.light textarea,
-body.light select,
-body.light .pr-input,
-body.light .pr-textarea,
-body.light .ih-select {
-  border: 1.5px solid rgba(0, 0, 0, 0.18) !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+/* ===============================
+   BUTTONS — light
+================================ */
+body.light .nav-btn.ghost, body.light .pr-ghost-btn,
+body.light .fb-btn-ghost, body.light .sc-btn-ghost,
+body.light .ih-view-btn {
+  background: #f1f3f6;
+  border-color: rgba(0,0,0,0.14);
+  color: var(--muted);
 }
 
-/* Quick action / banner cards */
-body.light .db-action-card,
-body.light .db-banner,
-body.light .ready-tips {
-  border: 1.5px solid rgba(0, 0, 0, 0.15) !important;
+body.light .fb-btn-secondary, body.light .sc-btn-secondary,
+body.light .ach-cert-btn {
+  background: rgba(13,122,95,0.08);
+  border-color: rgba(13,122,95,0.2);
+  color: #0d7a5f;
 }
 
-/* Input fields specifically */
-body.light input,
-body.light textarea,
-body.light select {
-  border: 1.5px solid rgba(0, 0, 0, 0.22) !important;
+body.light .pr-save-btn, body.light .nav-btn.primary,
+body.light .neon-btn {
+  background: linear-gradient(135deg,#0d7a5f,#2563eb) !important;
+  color: #ffffff !important;
 }
 
-body.light input:focus,
-body.light textarea:focus {
-  border-color: rgba(43, 138, 158, 0.6) !important;
-  box-shadow: 0 0 0 3px rgba(43, 138, 158, 0.12) !important;
+body.light .pr-add-btn, body.light .ach-empty > button {
+  background: rgba(13,122,95,0.08);
+  border-color: rgba(13,122,95,0.2);
+  color: #0d7a5f;
+}
+
+/* ===============================
+   TABS — light
+================================ */
+body.light .pr-tabs, body.light .ach-tabs {
+  background: #f1f3f6;
+  border-color: rgba(0,0,0,0.08);
+}
+
+body.light .pr-tab, body.light .ach-tab { color: var(--muted); }
+
+body.light .pr-tab.active, body.light .ach-tab--active {
+  background: rgba(13,122,95,0.08);
+  border-color: rgba(13,122,95,0.2);
+  color: #0d7a5f !important;
+}
+
+body.light .ach-tab--active .ach-tab-count {
+  background: rgba(13,122,95,0.12);
+  color: #0d7a5f;
+}
+
+/* ===============================
+   PROGRESS BARS / TRACKS — light
+================================ */
+body.light .sc-metric-track, body.light .pb-track,
+body.light .ih-score-bar-track, body.light .pr-comp-track,
+body.light .ach-lb-score-bar { background: rgba(0,0,0,0.07); }
+
+/* ===============================
+   HISTORY — light
+================================ */
+body.light .ih-page { background: var(--bg-main); color: var(--text-primary); }
+body.light .ih-hero h1 { -webkit-text-fill-color: var(--text-primary); background: none; }
+body.light .ih-hero p { color: var(--muted); }
+body.light .ih-table-topbar { border-color: rgba(0,0,0,0.06); }
+body.light .ih-thead { background: rgba(0,0,0,0.04); color: var(--muted); }
+body.light .ih-row { border-color: rgba(0,0,0,0.04); }
+body.light .ih-row:hover { background: rgba(0,0,0,0.02); }
+body.light .chart-tooltip {
+  background: #fff;
+  border-color: rgba(13,122,95,0.2);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+body.light .ih-back-btn { color: var(--muted); }
+body.light .ih-back-btn:hover { color: #0d7a5f; }
+body.light .recharts-cartesian-axis-tick text { fill: #606778 !important; }
+body.light .recharts-legend-item-text { color: #4a5568 !important; }
+
+/* ===============================
+   INTERVIEW ROOM — light
+================================ */
+body.light .recorder-card { background: #f1f3f6; border-color: rgba(0,0,0,0.14); }
+body.light .question-text, body.light .recorder-text { color: var(--text-primary); }
+body.light .word-count { background: #dde1e7; color: var(--muted); }
+body.light .control-btn { background: #f1f3f6; border-color: rgba(0,0,0,0.14); color: var(--text-primary); }
+body.light .audio-mode-btn { background: #ffffff; border-color: rgba(0,0,0,0.14); color: var(--text-primary); }
+body.light .audio-mode-btn:hover { border-color: #0d7a5f; }
+body.light .audio-mode-note { background: #f1f3f6; color: var(--muted); }
+body.light .speaker-tip { background: #fef9ec; color: #7a5c00; }
+body.light .perm-error { background: #fef2f2; border-color: #fca5a5; color: #c0392b; }
+body.light .muted-text { color: #606778; }
+body.light .placeholder-text { color: #8a93a0; }
+body.light .recorder-header h4, body.light .recorder-card h4 { color: #1e2a35; }
+body.light .rec-live { color: #c0392b; }
+
+/* Text input toggle in interview */
+body.light .toggle-btn { background: #f1f3f6; border-color: rgba(0,0,0,0.12); color: #606778; }
+body.light .toggle-btn.active { background: rgba(13,122,95,0.1); border-color: #0d7a5f; color: #0d7a5f; }
+body.light .answer-textarea { background: #f1f3f6; border-color: rgba(0,0,0,0.14); color: #1e2a35; }
+body.light .answer-textarea:focus { border-color: #0d7a5f !important; }
+body.light .switch-to-text-btn { border-color: #0d7a5f; color: #0d7a5f; }
+
+/* ===============================
+   SETUP STEPS — light
+================================ */
+body.light .setup-step { color: var(--muted); }
+body.light .setup-step.active { color: #0d7a5f; }
+body.light .setup-step.done { color: #2e7d4f; }
+body.light .step-dot { background: #dde1e7; color: #606778; }
+body.light .setup-step.active .step-dot { background: #0d7a5f; color: #fff; }
+body.light .setup-step.done .step-dot { background: #2e7d4f; color: #fff; }
+body.light .step-line { background: #d1d5db; }
+body.light .setup-error { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+body.light .diff-topic { background: rgba(0,0,0,0.05); color: var(--muted); }
+body.light .diff-label { color: #1e2a35; }
+body.light .device-info strong { color: #1e2a35; }
+body.light .device-info small { color: #606778; }
+body.light .ready-tips { background: rgba(13,122,95,0.05); border-color: rgba(13,122,95,0.12); }
+body.light .ready-tips li { color: var(--muted); }
+body.light .diff-recommended { background: #d97706; color: #fff; }
+body.light .diff-card:hover { border-color: #0d7a5f; box-shadow: 0 4px 16px rgba(13,122,95,0.12); }
+body.light .question-label { color: #0d7a5f; }
+body.light .timer-label { color: #606778; }
+body.light .summary-value { color: #1e2a35; }
+body.light .summary-label { color: #606778; }
+
+/* ===============================
+   FEEDBACK — light
+================================ */
+body.light .fb-hero { background: #ffffff; border-color: rgba(0,0,0,0.07); }
+body.light .fb-q-card { background: #f1f3f6; border-color: rgba(0,0,0,0.06); }
+body.light .fb-q-transcript { background: #f1f3f6; border-left-color: rgba(13,122,95,0.3); }
+body.light .fb-no-feedback { color: var(--muted); }
+body.light .fb-q-num { background: rgba(13,122,95,0.1); color: #0d7a5f; }
+
+/* ===============================
+   SCORECARD — light
+================================ */
+body.light .sc-front-left { background: rgba(0,0,0,0.03); border-color: rgba(13,122,95,0.12); }
+body.light .sc-back-divider { background: rgba(13,122,95,0.12); }
+body.light .sc-flip-hint, body.light .sc-hint { color: #94a3b8; }
+body.light .sc-info-val { color: #1e2a35 !important; }
+body.light .sc-info-label { color: #606778 !important; }
+body.light .sc-back-section-title { color: #0d7a5f !important; }
+
+/* ===============================
+   PROFILE — light
+================================ */
+body.light .pr-name { color: #1e2a35 !important; }
+body.light .pr-card-header strong { color: #1e2a35 !important; }
+body.light .pr-section-title { color: #0d7a5f !important; }
+body.light .pr-tab.active { color: #0d7a5f !important; }
+body.light .pr-add-title { color: #0d7a5f !important; }
+body.light .pr-degree { color: #0d7a5f !important; }
+body.light .pr-tag { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.2); color: #5b5ea6; }
+body.light .pr-add-card { background: rgba(13,122,95,0.04); border-color: rgba(13,122,95,0.18) !important; }
+body.light .pr-file-drop { background: #f1f3f6; border-color: rgba(0,0,0,0.12); }
+body.light .pr-resume-drop { border-color: rgba(0,0,0,0.12); }
+body.light .pr-resume-drop:hover, body.light .pr-resume-drop.has-file { border-color: rgba(13,122,95,0.3); background: rgba(13,122,95,0.04); }
+body.light .pr-resume-tips { background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.12); }
+body.light .pr-tips-list li { color: var(--muted); }
+body.light .pr-icon-btn { background: rgba(0,0,0,0.04); }
+body.light .pr-stat span { color: #0d7a5f !important; }
+body.light .pr-suggest-tag:hover { background: rgba(13,122,95,0.1); border-color: rgba(13,122,95,0.18); color: #0d7a5f; }
+
+/* ===============================
+   ACHIEVEMENTS — light
+================================ */
+body.light .ach-root { background: var(--bg-main); }
+body.light .ach-bg { display: none; }
+body.light .ach-hstat { background: #fff; border-color: rgba(0,0,0,0.09); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+body.light .ach-hstat-val { color: #1e2a35 !important; }
+body.light .ach-tabs { background: #f1f3f6; border-color: rgba(0,0,0,0.09); }
+body.light .ach-badge-card { background: #fff; border-color: rgba(0,0,0,0.09); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+body.light .ach-badge-progress { background: #fff; border-color: rgba(0,0,0,0.09); }
+body.light .ach-bp-label { color: #1e2a35; }
+body.light .ach-lb-table { background: #fff; border-color: rgba(0,0,0,0.09); }
+body.light .ach-lb-thead { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.06); color: #606778; }
+body.light .ach-lb-row { border-color: rgba(0,0,0,0.05); }
+body.light .ach-lb-row:hover { background: rgba(0,0,0,0.02); }
+body.light .ach-lb-row--me { background: rgba(13,122,95,0.04) !important; border-left-color: rgba(13,122,95,0.4); }
+body.light .ach-lb-avatar { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); }
+body.light .ach-lb-sessions, body.light .ach-lb-best, body.light .ach-lb-streak { color: #606778; }
+body.light .ach-podium { background: #fff; border-color: rgba(0,0,0,0.09); }
+body.light .ach-podium-name { color: #606778; }
+body.light .ach-cert-row { background: #fff; border-color: rgba(0,0,0,0.09); }
+body.light .ach-cert-row:hover { border-color: rgba(13,122,95,0.25); }
+body.light .ach-cert-role { color: #1e2a35 !important; }
+body.light .ach-my-rank-banner { background: rgba(13,122,95,0.05); border-color: rgba(13,122,95,0.2); }
+body.light .ach-mrb-name { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; }
+body.light .ach-mrb-stat span { color: #1e2a35 !important; }
+body.light .ach-no-rank-note { background: #fff; border-color: rgba(0,0,0,0.09); color: #606778; }
+body.light .ach-you-tag { background: rgba(13,122,95,0.1); color: #0d7a5f; border-color: rgba(13,122,95,0.25); }
+
+/* ===============================
+   PROGRESS PAGE — light
+================================ */
+body.light .pg-root { background: var(--bg-main); }
+body.light .pg-bg { display: none; }
+body.light .pg-title { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; }
+
+/* ===============================
+   DASHBOARD — light
+================================ */
+body.light .db-root { background: var(--bg-main); color: var(--text-primary); }
+body.light .db-bg { display: none; }
+body.light .db-tag { color: #0d7a5f; background: rgba(13,122,95,0.08); border-color: rgba(13,122,95,0.2); }
+body.light .db-greeting { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
+body.light .db-sub { color: var(--muted); }
+body.light .db-ring-val { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; }
+body.light .db-ring-bg { stroke: rgba(0,0,0,0.08); }
+body.light .db-ring-lbl { color: #606778; }
+body.light .db-logout { background: #fff; border-color: rgba(0,0,0,0.12); color: #4a5568; }
+body.light .db-logout:hover { background: #fef2f2; border-color: rgba(239,68,68,0.3); color: #ef4444; }
+body.light .db-stat { background: #fff; border: 1.5px solid rgba(0,0,0,0.10); box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+body.light .db-stat-val { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
+body.light .db-stat-lbl { color: #606778; }
+body.light .db-section-title { color: #606778; }
+body.light .db-action-primary { background: linear-gradient(135deg,rgba(13,122,95,0.06),rgba(37,99,235,0.06)); border: 1.5px solid rgba(13,122,95,0.22); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+body.light .db-action-primary:hover { border-color: rgba(13,122,95,0.45); box-shadow: 0 8px 24px rgba(13,122,95,0.12); }
+body.light .db-action-content h3 { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
+body.light .db-action-content p { color: #606778; }
+body.light .db-action-arrow { color: #0d7a5f; }
+body.light .db-action-secondary { background: #fff; border: 1.5px solid rgba(0,0,0,0.10); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+body.light .db-action-secondary:hover { background: #f8f9fb; border-color: rgba(0,0,0,0.18); }
+body.light .db-action-secondary h4 { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
+body.light .db-action-secondary p { color: #606778; }
+body.light .db-empty { background: #fff; border: 1.5px dashed rgba(0,0,0,0.14); }
+body.light .db-empty p { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
+body.light .db-empty span { color: #606778; }
+body.light .db-empty button { background: linear-gradient(135deg,#0d7a5f,#2563eb); color: #fff; }
+body.light .db-session { background: #fff; border: 1.5px solid rgba(0,0,0,0.09); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+body.light .db-session:hover { background: #f8f9fb; border-color: rgba(0,0,0,0.16); }
+body.light .db-session-role { color: #1e2a35 !important; -webkit-text-fill-color: #1e2a35 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
+body.light .db-session-meta { color: #606778; }
+body.light .db-view-all { border-color: rgba(0,0,0,0.12); color: #4a5568; }
+body.light .db-view-all:hover { border-color: rgba(0,0,0,0.2); color: #1e2a35; background: #f1f3f6; }
+body.light .db-footer-strip { background: rgba(13,122,95,0.04); border-color: rgba(13,122,95,0.14); }
+body.light .db-strip-text { color: #4a5568; }
+
+/* ===============================
+   ROLES PAGE — light
+================================ */
+body.light .rp-root { background: var(--bg-main); color: var(--text-primary); }
+body.light .rp-bg { display: none; }
+
+/* ===============================
+   CONTACT PAGE — light
+================================ */
+body.light .ct-root { background: var(--bg-main); color: var(--text-primary); }
+body.light .ct-bg { display: none; }
+body.light .ct-info-card, body.light .ct-contact-card {
+  background: #fff !important;
+  border: 1.5px solid rgba(0,0,0,0.12) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+}
+
+/* ===============================
+   NAVBAR — light
+================================ */
+body.light .navbar {
+  background: #fff;
+  border-bottom-color: rgba(0,0,0,0.09);
+  box-shadow: 0 1px 12px rgba(0,0,0,0.07);
+}
+
+/* ===============================
+   HOME PAGE
+================================ */
+body.light .features-section,
+body.light .how-it-works,
+body.light .stats-section,
+body.light .roles-section { background: var(--bg-main); color: var(--text-primary); }
+body.light .feature-card, body.light .step-card, body.light .role-card {
+  background: #fff;
+  border-color: rgba(0,0,0,0.09);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+/* ===============================
+   LOADER — light
+================================ */
+body.light .loader-overlay { background: rgba(240,244,248,0.88); }
+body.light .loader-text { color: var(--text-primary); }
+
+/* ===============================
+   FOOTER — always dark
+================================ */
+body.light .footer { background: #111827; }
+body.light .footer-overlay { background: linear-gradient(to bottom,rgba(15,20,35,0.95),rgba(8,12,20,0.98)); }
+body.light .footer-logo { color: #f1f5f9; }
+body.light .footer-logo span { color: #38bdf8; }
+body.light .footer-tagline { color: #94a3b8; }
+body.light .footer-col-title { color: #38bdf8; }
+body.light .footer-links a, body.light .footer-links span { color: #94a3b8; }
+body.light .footer-links a:hover { color: #e2e8f0; }
+body.light .footer-bottom { border-top-color: rgba(56,189,248,0.15); color: #64748b; }
+
+/* ===============================
+   SCROLLBAR
+================================ */
+body.dark ::-webkit-scrollbar { width: 6px; }
+body.dark ::-webkit-scrollbar-track { background: #080c14; }
+body.dark ::-webkit-scrollbar-thumb { background: rgba(0,245,160,0.2); border-radius: 3px; }
+
+body.light ::-webkit-scrollbar { width: 6px; }
+body.light ::-webkit-scrollbar-track { background: #e2e8f0; }
+body.light ::-webkit-scrollbar-thumb { background: rgba(13,122,95,0.3); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════════════
+   UNIVERSAL GRID BACKGROUND — every page, both modes
+   Matches the Roles page grid pattern
+═══════════════════════════════════════════════════ */
+
+/* Dark mode grid — white lines, very subtle */
+body.dark .db-root::before,
+body.dark .ach-root::before,
+body.dark .pg-root::before,
+body.dark .pf-root::before,
+body.dark .rp-root::before,
+body.dark .ct-root::before,
+body.dark .fb-page::before,
+body.dark .sc-page::before,
+body.dark .ih-page::before,
+body.dark .pr-page::before,
+body.dark .interview-page::before,
+body.dark .setup-page::before,
+body.dark .fr-root::before,
+body.dark .fcr-root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Light mode grid — dark lines, very subtle */
+body.light .db-root::before,
+body.light .ach-root::before,
+body.light .pg-root::before,
+body.light .pf-root::before,
+body.light .rp-root::before,
+body.light .ct-root::before,
+body.light .fb-page::before,
+body.light .sc-page::before,
+body.light .ih-page::before,
+body.light .pr-page::before,
+body.light .interview-page::before,
+body.light .setup-page::before,
+body.light .fr-root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.055) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* All page roots need position:relative + z-index:1 on their content */
+.db-root, .ach-root, .pg-root, .pf-root,
+.rp-root, .ct-root, .fb-page, .sc-page,
+.ih-page, .pr-page, .interview-page,
+.setup-page, .fr-root, .fcr-root {
+  position: relative;
+}
+
+/* Remove the old individual .db-grid, .pg-grid etc since ::before handles it now */
+.db-grid, .pg-grid, .ach-grid,
+.fb-grid, .sc-grid, .ih-grid,
+.setup-grid, .interview-grid { display: none !important; }
+
+/* Content wrappers above grid */
+.db-wrap, .ach-wrap, .pg-wrap, .pf-wrap,
+.rp-wrap, .ct-wrap, .fb-wrap, .sc-wrap,
+.ih-wrap, .pr-wrap, .interview-layout,
+.audio-mode-card, .setup-card,
+.fr-wrap, .fr-card {
+  position: relative;
+  z-index: 1;
 }
