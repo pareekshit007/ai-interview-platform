@@ -167,6 +167,26 @@ const BADGES = [
     tier: "bronze",
     check: ({ profileComplete }) => profileComplete,
   },
+
+  // ── Resume-based interview badges ───────────────────────────────────────
+  {
+    id: "resume_ready",
+    name: "Resume Ready",
+    description: "Complete a resume-based interview (Technical + HR)",
+    icon: "📄",
+    color: "#00f5a0",
+    tier: "gold",
+    check: ({ resumeInterviews }) => resumeInterviews >= 1,
+  },
+  {
+    id: "clean_record",
+    name: "Clean Record",
+    description: "Complete a resume-based interview with zero proctoring violations",
+    icon: "🛡️",
+    color: "#3b82f6",
+    tier: "gold",
+    check: ({ cleanResumeInterview }) => cleanResumeInterview,
+  },
 ];
 
 /**
@@ -180,6 +200,7 @@ function computeStats(interviews, user) {
       longestStreak: user.longestStreak || 0,
       uniqueRoles: 0, maxImprovement: 0,
       profileComplete: false,
+      resumeInterviews: 0, cleanResumeInterview: false,
     };
   }
 
@@ -201,10 +222,15 @@ function computeStats(interviews, user) {
     user.experience?.trim() && user.resumeUrl
   );
 
+  const resumeSessions = interviews.filter(i => i.interviewType === "resume");
+  const resumeInterviews = resumeSessions.length;
+  const cleanResumeInterview = resumeSessions.some(i => (i.proctor?.violations || 0) === 0);
+
   return {
     totalSessions, avgScore, bestScore,
     longestStreak: user.longestStreak || 0,
     uniqueRoles, maxImprovement, profileComplete,
+    resumeInterviews, cleanResumeInterview,
   };
 }
 

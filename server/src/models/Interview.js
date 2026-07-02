@@ -10,6 +10,7 @@ const answerSchema = new mongoose.Schema({
   sentiment:     { type: Number, default: 0 },
   aiFeedback:    { type: String, default: "" },
   topic:         { type: String, default: "General" },
+  phase:         { type: String, enum: ["technical", "hr", null], default: null }, // resume-based interviews only
 });
 
 const interviewSchema = new mongoose.Schema(
@@ -23,6 +24,12 @@ const interviewSchema = new mongoose.Schema(
     verdict:    { type: String, default: "" },
     aiFeedback: { type: String, default: "" },
     completed:  { type: Boolean, default: false },
+    interviewType: { type: String, enum: ["standard", "resume"], default: "standard" },
+    proctor: {
+      violations: { type: Number, default: 0 },
+      flagged:    { type: Boolean, default: false },
+      log:        [{ type: String }],
+    },
   },
   { timestamps: true }
 );

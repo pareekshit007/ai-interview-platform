@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema(
     skills:               [{ type: String }],
     profilePic:           { type: String, default: "" },
     resumeUrl:            { type: String, default: "" },
+    resumeText:           { type: String, default: "" },   // cached extracted text from resumeUrl
+    resumeTextSourceUrl:  { type: String, default: "" },   // which resumeUrl the cached text belongs to
     experience:           { type: String, default: "" },
     projectsText:         { type: String, default: "" },
     certificationsText:   { type: String, default: "" },

@@ -267,4 +267,4 @@ Output format — ONLY the numbered questions, nothing else:
   }
 };
 
-module.exports = { generateQuestions };
+module.exports = { generateQuestions, FALLBACK_POOL };

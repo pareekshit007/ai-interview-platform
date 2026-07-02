@@ -155,6 +155,18 @@ const Dashboard = () => {
                 <div className="db-action-arrow">→</div>
               </div>
 
+              <div className="db-action-primary" onClick={() => navigate("/resume-interview/setup")}>
+                <div className="db-action-glow" />
+                <div className="db-action-content">
+                  <div className="db-action-icon">📄</div>
+                  <div>
+                    <h3>Resume-Based Interview</h3>
+                    <p>Strict, proctored Technical + HR interview tailored to your resume</p>
+                  </div>
+                </div>
+                <div className="db-action-arrow">→</div>
+              </div>
+
               {/* ── Secondary cards: History · Progress · Profile · Achievements ── */}
               <div className="db-action-secondary-row">
                 <div className="db-action-secondary" onClick={() => navigate("/interview-history")}>

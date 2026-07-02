@@ -21,6 +21,9 @@ import FriendRoomCreate from "./pages/FriendRoomCreate";
 import FriendRoomJoin from "./pages/FriendRoomJoin";
 import FriendCallRoom from "./pages/FriendCallRoom";
 import Achievements from "./pages/Achievements";          // ← NEW
+import ResumeInterviewSetup from "./pages/ResumeInterviewSetup";     // ← NEW
+import ResumeInterviewRoom from "./pages/ResumeInterviewRoom";       // ← NEW
+import ResumeInterviewResults from "./pages/ResumeInterviewResults"; // ← NEW
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
 const PublicRoute = ({ children }) => {
@@ -56,6 +59,9 @@ function App() {
         <Route path="/feedback/:role"          element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         <Route path="/profile"                 element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/achievements"            element={<ProtectedRoute><Achievements /></ProtectedRoute>} />  {/* ← NEW */}
+        <Route path="/resume-interview/setup"   element={<ProtectedRoute><ResumeInterviewSetup /></ProtectedRoute>} />   {/* ← NEW */}
+        <Route path="/resume-interview/room"    element={<ProtectedRoute><ResumeInterviewRoom /></ProtectedRoute>} />    {/* ← NEW */}
+        <Route path="/resume-interview/results" element={<ProtectedRoute><ResumeInterviewResults /></ProtectedRoute>} /> {/* ← NEW */}
         <Route path="/friend-interview/create" element={<ProtectedRoute><FriendRoomCreate /></ProtectedRoute>} />
 
         {/* Catch-all */}
