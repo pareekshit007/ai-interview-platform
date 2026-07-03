@@ -28,10 +28,11 @@ const FriendCallRoom = () => {
   const [sp]           = useSearchParams();
   const navigate       = useNavigate();
 
-  // Default to "host" only if ?as=host is explicitly set
-  // This prevents a guest navigating without the query param from stealing host role
+  // Default to "guest" unless ?as=host is explicitly set.
+  // This prevents anyone navigating without the query param (or with a
+  // copied host link) from accidentally claiming the host role.
   const asParam = sp.get("as");
-  const as      = asParam === "guest" ? "guest" : "host";
+  const as      = asParam === "host" ? "host" : "guest";
 
   const token = localStorage.getItem("token");
   const user  = getUser();
@@ -74,7 +75,7 @@ const FriendCallRoom = () => {
   const {
     connected, peerPresent, callActive,
     localStream, remoteStream,
-    micOn, camOn, error, roomData, chatMessages,
+    micOn, camOn, error, roomData, chatMessages, relayProvider,
     toggleMic, toggleCam, sendChatMessage, hangUp,
     emitInterviewEvent, onInterviewEvent,
   } = useWebRTC({ code, as: verifiedAs, name, enabled: roleVerified });
@@ -574,6 +575,12 @@ const FriendCallRoom = () => {
           {!callActive && peerPresent && (
             <p className="fcr-conn-note">
               🔄 Establishing peer connection — may take a few seconds on some networks.
+            </p>
+          )}
+
+          {relayProvider === "fallback" && (
+            <p className="fcr-relay-note" title="Using a free public relay server. If you're on different network types (e.g. WiFi and mobile data), the connection may occasionally drop or take longer to reconnect.">
+              ⚠️ Using free relay — connection may be less stable across different network types.
             </p>
           )}
         </div>

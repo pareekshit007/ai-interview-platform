@@ -258,6 +258,47 @@ const validateSessionFeedback = [
   handleValidation,
 ];
 
+// ── Resume-based interview ─────────────────────────────────────────────────
+
+const validateSubmitResumeInterview = [
+  param("id")
+    .isMongoId().withMessage("Invalid interview ID"),
+
+  body("answers")
+    .isArray({ min: 1, max: 20 }).withMessage("answers must be a non-empty array (max 20)"),
+
+  body("answers.*.questionIndex")
+    .isInt({ min: 0 }).withMessage("questionIndex must be a non-negative integer"),
+
+  body("answers.*.questionText")
+    .trim()
+    .notEmpty().withMessage("questionText is required")
+    .isLength({ max: 500 }).withMessage("questionText too long"),
+
+  body("answers.*.transcript")
+    .optional()
+    .trim()
+    .isLength({ max: 5000 }).withMessage("transcript too long (max 5000 chars)"),
+
+  body("answers.*.phase")
+    .optional({ nullable: true })
+    .isIn(["technical", "hr"]).withMessage("phase must be technical or hr"),
+
+  body("proctor.violations")
+    .optional()
+    .isInt({ min: 0, max: 1000 }).withMessage("proctor.violations must be a non-negative integer"),
+
+  body("proctor.flagged")
+    .optional()
+    .isBoolean().withMessage("proctor.flagged must be boolean"),
+
+  body("proctor.log")
+    .optional()
+    .isArray({ max: 50 }).withMessage("proctor.log must be an array (max 50 entries)"),
+
+  handleValidation,
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -267,4 +308,5 @@ module.exports = {
   validateGetQuestions,
   validateAnswerFeedback,
   validateSessionFeedback,
+  validateSubmitResumeInterview,
 };

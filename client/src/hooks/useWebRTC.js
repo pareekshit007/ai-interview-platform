@@ -35,11 +35,11 @@ const fetchIceConfig = async () => {
     const res = await fetch(TURN_API_URL, { cache: "no-store" });
     if (!res.ok) throw new Error(`TURN API ${res.status}`);
     const data = await res.json();
-    console.log(`✅ ICE servers loaded (${data.iceServers?.length} entries)`);
-    return { ...data, iceCandidatePoolSize: 10 };
+    console.log(`✅ ICE servers loaded (${data.iceServers?.length} entries) — provider: ${data.provider || "unknown"}`);
+    return { ...data, iceCandidatePoolSize: 10, provider: data.provider || "unknown" };
   } catch (err) {
     console.warn("⚠️ TURN API failed, using Open Relay fallback:", err.message);
-    return OPEN_RELAY_FALLBACK;
+    return { ...OPEN_RELAY_FALLBACK, provider: "fallback" };
   }
 };
 
@@ -55,6 +55,7 @@ export const useWebRTC = ({ code, as, name, enabled = true }) => {
   const [error,        setError]        = useState("");
   const [roomData,     setRoomData]     = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
+  const [relayProvider, setRelayProvider] = useState(null); // "metered" | "fallback" | null
 
   const socketRef         = useRef(null);
   const pcRef             = useRef(null);
@@ -168,6 +169,7 @@ export const useWebRTC = ({ code, as, name, enabled = true }) => {
       const iceConfig = await fetchIceConfig();
       if (cancelled) return;
       iceConfigRef.current = iceConfig;
+      setRelayProvider(iceConfig.provider || "fallback");
 
       // 2. Get local media
       let stream;
@@ -381,7 +383,7 @@ export const useWebRTC = ({ code, as, name, enabled = true }) => {
 
   return {
     connected, peerPresent, callActive, localStream, remoteStream,
-    micOn, camOn, error, roomData, chatMessages,
+    micOn, camOn, error, roomData, chatMessages, relayProvider,
     toggleMic, toggleCam, sendChatMessage, hangUp,
     emitInterviewEvent, onInterviewEvent,
   };

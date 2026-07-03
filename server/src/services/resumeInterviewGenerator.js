@@ -67,20 +67,24 @@ const generateResumeInterview = async (resumeContext, { technicalCount = 6, hrCo
 
     const seed = Math.random().toString(36).slice(2, 8);
 
-    const prompt = `You are a strict, senior technical interviewer conducting a resume-based interview. Carefully read the candidate's background below, extract the key technical skills, tools, and project keywords, and build a targeted interview around them.
+    const prompt = `You are a strict, senior technical interviewer conducting a resume-based interview. Carefully read the candidate's ENTIRE background below — projects, certifications, skills, and experience — and build a natural, varied interview that proves you read all of it, not just one part.
 
 Candidate Background:
 ${resumeContext.slice(0, 6000)}
 
 Session ID: ${seed}-${Date.now()}
 
-Generate exactly ${technicalCount} TECHNICAL questions that directly reference specific skills, tools, or projects mentioned in the background above (not generic questions — each should clearly connect to something the candidate actually listed). Then generate exactly ${hrCount} HR/behavioral questions appropriate for this candidate's apparent experience level.
+First, mentally identify every DISTINCT project, certification, skill area, and experience phase mentioned above. Then generate exactly ${technicalCount} TECHNICAL questions, spreading them across as many of those distinct items as possible — do not ask more than ONE question about the same specific project, certification, or narrow topic unless the background genuinely contains nothing else to draw from. The interview should feel like it's jumping naturally across different parts of their background, the way a real interviewer skims a resume and picks varied points, not like it's drilling into a single section.
 
-Requirements:
-- Technical questions must probe real depth: "how", "why", "what would you do if X failed", trade-offs — not just definitions
-- Do not invent skills the candidate didn't mention
-- HR questions should assess communication, ownership, and culture fit
-- Be strict and specific, avoid generic filler questions
+Guidelines for the ${technicalCount} technical questions:
+- If multiple projects are listed, question DIFFERENT projects, not the same one twice
+- If multiple certifications or skills are listed, spread questions across different ones
+- Include at least one question about their experience/career progression if that context exists
+- Vary question style: some about specific decisions, some about trade-offs, some "what would you do if X failed", some conceptual depth checks — avoid a repetitive pattern
+- Every question must clearly connect to something the candidate actually wrote — never invent details they didn't mention
+- If the background only has one project/topic to draw from, it's fine to ask more than one question about it — but still vary the angle each time
+
+Then generate exactly ${hrCount} HR/behavioral questions appropriate for this candidate's apparent experience level and career stage, naturally referencing different moments in their journey (not all about the same thing either).
 
 Output format — ONLY this structure, nothing else:
 TECHNICAL:
@@ -112,8 +116,8 @@ HR:
 
     console.log(`✅ Gemini generated resume-based interview: ${technical.length} technical + ${hr.length} HR questions`);
     return {
-      technical: technical.slice(0, technicalCount),
-      hr: hr.slice(0, hrCount),
+      technical: shuffle(technical).slice(0, technicalCount),
+      hr: shuffle(hr).slice(0, hrCount),
       source: "ai",
     };
   } catch (error) {

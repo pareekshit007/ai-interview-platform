@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [userName, setUserName] = useState("");
   const [stats,    setStats]    = useState({ total: 0, avgScore: 0, bestScore: 0, lastRole: "—" });
   const [recentInterviews, setRecentInterviews] = useState([]);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -28,7 +29,7 @@ const Dashboard = () => {
         setStats({ total, avgScore, bestScore, lastRole });
         setRecentInterviews(interviews.slice(0, 3));
       })
-      .catch(() => {})
+      .catch((err) => setLoadError(err.message || "Failed to load your data — please refresh."))
       .finally(() => setLoading(false));
   }, [navigate]);
 
@@ -69,6 +70,12 @@ const Dashboard = () => {
         </div>
 
         <div className="db-wrap">
+
+          {loadError && (
+            <div className="db-load-error">
+              ⚠️ {loadError} <button onClick={() => window.location.reload()}>Retry</button>
+            </div>
+          )}
 
           {/* HEADER */}
           <header className="db-header">

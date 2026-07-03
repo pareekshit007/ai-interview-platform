@@ -58,24 +58,26 @@ const fetchMeteredCredentials = async () => {
 };
 
 /**
- * Returns { iceServers: [...] } — always resolves, never throws.
- * Uses cache when fresh, refetches when stale, falls back to Open Relay on error.
+ * Returns { iceServers: [...], provider: "metered" | "fallback" } — always
+ * resolves, never throws. Uses cache when fresh, refetches when stale,
+ * falls back to Open Relay on error. `provider` lets the client show a
+ * subtle notice when running on the less-reliable free relay.
  */
 const getIceServers = async () => {
   // Return cache if still fresh
   if (cache && Date.now() < cache.expiresAt) {
-    return { iceServers: cache.iceServers };
+    return { iceServers: cache.iceServers, provider: cache.provider };
   }
 
   const metered = await fetchMeteredCredentials();
   if (metered) {
-    cache = { iceServers: metered, expiresAt: Date.now() + CACHE_TTL_MS };
-    return { iceServers: metered };
+    cache = { iceServers: metered, provider: "metered", expiresAt: Date.now() + CACHE_TTL_MS };
+    return { iceServers: metered, provider: "metered" };
   }
 
   // Fallback — public Open Relay TURN (no setup needed)
   console.log("ℹ️  Using Open Relay free TURN fallback");
-  return { iceServers: OPEN_RELAY_FALLBACK };
+  return { iceServers: OPEN_RELAY_FALLBACK, provider: "fallback" };
 };
 
 module.exports = { getIceServers };
