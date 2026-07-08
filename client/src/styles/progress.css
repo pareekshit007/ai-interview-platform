@@ -299,6 +299,8 @@
   .pg-stats-grid { grid-template-columns: repeat(2, 1fr); }
   .pg-two-col { grid-template-columns: 1fr; gap: 1.5rem; }
   .pg-title { font-size: 1.7rem; }
+  .pg-role-row { grid-template-columns: 60px 1fr 32px 24px; gap: 0.5rem; }
+  .pg-role-name { font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 /* ═══════════════════════════════════
    LIGHT MODE — Progress Page

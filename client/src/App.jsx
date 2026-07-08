@@ -25,6 +25,7 @@ import ResumeInterviewSetup from "./pages/ResumeInterviewSetup";     // ← NEW
 import ResumeInterviewRoom from "./pages/ResumeInterviewRoom";       // ← NEW
 import ResumeInterviewResults from "./pages/ResumeInterviewResults"; // ← NEW
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const PublicRoute = ({ children }) => {
   const token  = localStorage.getItem("token");
@@ -42,7 +43,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/login"   element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/signup"  element={<PublicRoute><Signup /></PublicRoute>} />
-
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
         {/* Friend Interview — intentionally public (guest, no login) */}
         <Route path="/friend-interview/join/:code" element={<FriendRoomJoin />} />
         <Route path="/friend-interview/room/:code" element={<FriendCallRoom />} />

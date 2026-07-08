@@ -3,19 +3,10 @@
  * Uses your existing: Interview model, User model, gemini config
  */
 
-const nodemailer = require("nodemailer");
 const model      = require("../config/gemini");
 const User       = require("../models/User");
 const Interview  = require("../models/Interview");
-
-// ── Nodemailer transporter ─────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,   // Gmail: use an App Password
-  },
-});
+const transporter = require("../config/mailer");
 
 // ── Find user's weakest topic from their interview history ─────────────────
 // Reads Interview.answers[].topic and .score — both exist in your schema

@@ -545,6 +545,12 @@
   .fcr-ctrl-icon { font-size:1.1rem; }
   .fcr-header-center { display:none; }
 }
+@media (max-width:380px) {
+  .fcr-controls { gap:0.25rem; }
+  .fcr-ctrl { width:48px; height:48px; }
+  .fcr-ctrl-icon { font-size:1rem; }
+  .fcr-ctrl-lbl { display:none; }
+}
 /* ═══════════════════════════════════
    LIGHT MODE — Friend Call Room
 ═══════════════════════════════════ */

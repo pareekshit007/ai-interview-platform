@@ -753,16 +753,6 @@
   .nav-links {
     display: none;
   }
-}
-
-@media (max-width: 768px) {
-  .navbar {
-    padding: 0 20px;
-  }
-
-  .nav-right {
-    gap: 4px;
-  }
 
   .hamburger {
     display: flex;
@@ -774,6 +764,16 @@
 
   .nav-auth-btns {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 20px;
+  }
+
+  .nav-right {
+    gap: 4px;
   }
 
   /* hide text label on small screens, keep just the icon */

@@ -126,6 +126,9 @@ const Login = () => {
             <button className="auth-btn" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>
+            <div className="auth-forgot-row">
+              <Link to="/forgot-password">Forgot password?</Link>
+            </div>
           </form>
 
           <div className="auth-divider"><span>or</span></div>

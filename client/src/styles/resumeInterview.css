@@ -154,3 +154,34 @@
   .ri-certificate { position: absolute; top: 0; left: 0; width: 100%; border: none; }
   .ri-certificate .ri-btn { display: none; }
 }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — tablet & mobile
+═══════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .ri-page { padding: 24px 14px; }
+  .ri-setup-card { padding: 26px 20px; border-radius: 16px; }
+  .ri-setup-icon { font-size: 2rem; }
+  .ri-setup-card h1 { font-size: 1.35rem; }
+
+  .ri-proctor-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .ri-phase-chip, .ri-violation-chip { text-align: center; }
+
+  .ri-warning-modal { padding: 22px 18px; }
+
+  .ri-results-actions { flex-direction: column; }
+
+  .ri-score-big { font-size: 2.3rem; }
+  .ri-cert-border h2 { font-size: 1.15rem; }
+  .ri-certificate { padding: 16px; }
+}
+
+@media (max-width: 380px) {
+  .ri-setup-card { padding: 20px 14px; }
+  .ri-badges-row { flex-direction: column; }
+  .ri-badge-pill { text-align: center; }
+}
