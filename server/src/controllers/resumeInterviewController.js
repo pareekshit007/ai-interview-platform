@@ -4,7 +4,7 @@ const { buildResumeContext, generateResumeInterview } = require("../services/res
 const { generateSessionFeedback } = require("../services/feedbackGenerator");
 const { scoreAllAnswers } = require("../services/scoreAnswers");
 const { tagTopic } = require("../utils/topicTagger");
-const { getAllBadgesWithStatus } = require("../services/badgeEngine");
+const { notify, checkAndNotifyNewBadges } = require("../services/notificationService");
 
 // ── Start a resume-based interview (Technical → HR, no timer) ──
 const startResumeInterview = async (req, res) => {
@@ -110,17 +110,29 @@ const submitResumeInterview = async (req, res) => {
       }
     }
 
-    // ── Badge check ──
+    // ── Badge check — only truly NEW badges get a notification ─────────────
     let newlyEarnedBadges = [];
     try {
       const allInterviews = await Interview.find({ user: req.user._id, completed: true }).sort({ createdAt: 1 });
       const freshUser = await User.findById(req.user._id);
-      const allBadges = getAllBadgesWithStatus(allInterviews, freshUser);
-      newlyEarnedBadges = allBadges.filter(b => b.earned).map(b => ({
+      const { newlyEarned } = await checkAndNotifyNewBadges({ user: freshUser, interviews: allInterviews });
+      newlyEarnedBadges = newlyEarned.map(b => ({
         id: b.id, name: b.name, icon: b.icon, tier: b.tier, color: b.color,
       }));
     } catch (badgeErr) {
       console.error("Badge check failed:", badgeErr.message);
+    }
+
+    // ── Certificate-earned notification (score threshold met) ──────────────
+    if (totalScore >= 70) {
+      notify({
+        userId: req.user._id,
+        type: "certificate_earned",
+        icon: "🎓",
+        title: "Certificate unlocked",
+        text: `You scored ${totalScore}% on your resume-based interview — your certificate is ready to download.`,
+        link: `/achievements`,
+      });
     }
 
     res.json({

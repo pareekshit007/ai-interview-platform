@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const { generateToken } = require("../utils/jwt");
 const { sendOtp, verifyOtp } = require("../services/otpService");
+const { notify } = require("../services/notificationService");
 
 // Step 1 of signup: email a 6-digit code to prove the address is real and reachable.
 const sendSignupOtp = async (req, res) => {
@@ -45,6 +46,16 @@ const register = async (req, res) => {
       password,
       emailVerified: true,
     });
+
+    notify({
+      userId: user._id,
+      type: "account_created",
+      icon: "🎉",
+      title: "Welcome to AI Interview Platform!",
+      text: "Head to the Roles page to start your first mock interview.",
+      link: "/roles",
+    });
+
     res.status(201).json({
       token: generateToken(user._id),
       user: { _id: user._id, name: user.name, email: user.email },
@@ -126,6 +137,15 @@ const resetPassword = async (req, res) => {
     user.password = newPassword; // pre-save hook re-hashes this
     await user.save();
 
+    notify({
+      userId: user._id,
+      type: "password_reset",
+      icon: "🔐",
+      title: "Your password was reset",
+      text: "If this wasn't you, contact support immediately.",
+      link: "/profile",
+    });
+
     res.json({ message: "Password reset — you can now log in with your new password." });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -151,6 +171,15 @@ const changePassword = async (req, res) => {
 
     user.password = newPassword; // pre-save hook re-hashes this
     await user.save();
+
+    notify({
+      userId: user._id,
+      type: "password_changed",
+      icon: "🔐",
+      title: "Your password was changed",
+      text: "If this wasn't you, reset your password immediately and contact support.",
+      link: "/profile",
+    });
 
     res.json({ message: "Password updated successfully" });
   } catch (error) {
