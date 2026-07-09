@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
     name:                 { type: String, required: true, trim: true },
     email:                { type: String, required: true, unique: true, lowercase: true, trim: true },
     password:             { type: String, required: true, minlength: 6 },
+    emailVerified:        { type: Boolean, default: false }, // set true only after OTP verification at signup
+    notifiedBadgeIds:     { type: [String], default: [] },   // badge ids already notified — prevents re-notifying on every interview
     phone:                { type: String, default: "" },
     college:              { type: String, default: "" },
     degree:               { type: String, default: "" },
@@ -16,6 +18,8 @@ const userSchema = new mongoose.Schema(
     skills:               [{ type: String }],
     profilePic:           { type: String, default: "" },
     resumeUrl:            { type: String, default: "" },
+    resumeText:           { type: String, default: "" },   // cached extracted text from resumeUrl
+    resumeTextSourceUrl:  { type: String, default: "" },   // which resumeUrl the cached text belongs to
     experience:           { type: String, default: "" },
     projectsText:         { type: String, default: "" },
     certificationsText:   { type: String, default: "" },

@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [userName, setUserName] = useState("");
   const [stats,    setStats]    = useState({ total: 0, avgScore: 0, bestScore: 0, lastRole: "—" });
   const [recentInterviews, setRecentInterviews] = useState([]);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -28,7 +29,7 @@ const Dashboard = () => {
         setStats({ total, avgScore, bestScore, lastRole });
         setRecentInterviews(interviews.slice(0, 3));
       })
-      .catch(() => {})
+      .catch((err) => setLoadError(err.message || "Failed to load your data — please refresh."))
       .finally(() => setLoading(false));
   }, [navigate]);
 
@@ -69,6 +70,12 @@ const Dashboard = () => {
         </div>
 
         <div className="db-wrap">
+
+          {loadError && (
+            <div className="db-load-error">
+              ⚠️ {loadError} <button onClick={() => window.location.reload()}>Retry</button>
+            </div>
+          )}
 
           {/* HEADER */}
           <header className="db-header">
@@ -150,6 +157,18 @@ const Dashboard = () => {
                   <div>
                     <h3>Mock Interview with a Friend</h3>
                     <p>Live video call — share a link, no account needed for them</p>
+                  </div>
+                </div>
+                <div className="db-action-arrow">→</div>
+              </div>
+
+              <div className="db-action-primary" onClick={() => navigate("/resume-interview/setup")}>
+                <div className="db-action-glow" />
+                <div className="db-action-content">
+                  <div className="db-action-icon">📄</div>
+                  <div>
+                    <h3>Resume-Based Interview</h3>
+                    <p>Strict, proctored Technical + HR interview tailored to your resume</p>
                   </div>
                 </div>
                 <div className="db-action-arrow">→</div>

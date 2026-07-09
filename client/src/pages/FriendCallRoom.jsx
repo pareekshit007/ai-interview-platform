@@ -28,10 +28,11 @@ const FriendCallRoom = () => {
   const [sp]           = useSearchParams();
   const navigate       = useNavigate();
 
-  // Default to "host" only if ?as=host is explicitly set
-  // This prevents a guest navigating without the query param from stealing host role
+  // Default to "guest" unless ?as=host is explicitly set.
+  // This prevents anyone navigating without the query param (or with a
+  // copied host link) from accidentally claiming the host role.
   const asParam = sp.get("as");
-  const as      = asParam === "guest" ? "guest" : "host";
+  const as      = asParam === "host" ? "host" : "guest";
 
   const token = localStorage.getItem("token");
   const user  = getUser();
@@ -63,7 +64,7 @@ const FriendCallRoom = () => {
   const [peerCamOff,       setPeerCamOff]        = useState(false);
   const [activeTab,        setActiveTab]         = useState("interview");
   // Verified role from DB — prevents both users claiming "host"
-  const [verifiedAs,       setVerifiedAs]        = useState(as);
+  const [verifiedAs,       setVerifiedAs]        = useState(null);   // null = not yet verified
   const [roleVerified,     setRoleVerified]      = useState(false);
 
   const localVideoRef  = useRef(null);
@@ -74,10 +75,10 @@ const FriendCallRoom = () => {
   const {
     connected, peerPresent, callActive,
     localStream, remoteStream,
-    micOn, camOn, error, roomData, chatMessages,
+    micOn, camOn, error, roomData, chatMessages, relayProvider,
     toggleMic, toggleCam, sendChatMessage, hangUp,
     emitInterviewEvent, onInterviewEvent,
-  } = useWebRTC({ code, as: verifiedAs, name });
+  } = useWebRTC({ code, as: verifiedAs, name, enabled: roleVerified });
 
   /* ── attach media to video elements ── */
   useEffect(() => {
@@ -205,11 +206,14 @@ const FriendCallRoom = () => {
   }, []);
 
   /* ── derived state ── */
-  const isInterviewer = roomData
-    ? (roomData.hostIsInterviewer ? verifiedAs === "host" : verifiedAs === "guest")
-    : verifiedAs === "host";
+  const isInterviewer = verifiedAs
+    ? (roomData
+        ? (roomData.hostIsInterviewer ? verifiedAs === "host" : verifiedAs === "guest")
+        : verifiedAs === "host")
+    : false;
 
   const questions  = roomData?.questions || roomMeta?.questions || [];
+  const questionsSource = roomData?.questionsSource || roomMeta?.questionsSource || "ai";
   const currentQ   = questions[questionIndex] || "";
 
   /* ── interview controls (interviewer only) ── */
@@ -573,6 +577,12 @@ const FriendCallRoom = () => {
               🔄 Establishing peer connection — may take a few seconds on some networks.
             </p>
           )}
+
+          {relayProvider === "fallback" && (
+            <p className="fcr-relay-note" title="Using a free public relay server. If you're on different network types (e.g. WiFi and mobile data), the connection may occasionally drop or take longer to reconnect.">
+              ⚠️ Using free relay — connection may be less stable across different network types.
+            </p>
+          )}
         </div>
 
         {/* RIGHT: tabs panel */}
@@ -609,6 +619,14 @@ const FriendCallRoom = () => {
                   <div className="fcr-prestart-icon">🎯</div>
                   <h3>{ROLE_LABELS[roomMeta?.role] || roomMeta?.role || "Interview"}</h3>
                   <p>{questions.length} questions · {roomMeta?.difficulty} difficulty</p>
+                  {questionsSource === "fallback" && (
+                    <span
+                      className="practice-mode-badge"
+                      title="AI question generation is temporarily unavailable — this room is using our curated question bank instead."
+                    >
+                      🧩 Practice Mode
+                    </span>
+                  )}
 
                   <div className={`fcr-role-card ${isInterviewer ? "int" : "cand"}`}>
                     <span>{isInterviewer ? "🧑‍💼" : "🎤"}</span>
@@ -641,6 +659,11 @@ const FriendCallRoom = () => {
                 <div className="fcr-active">
                   <div className="fcr-q-header">
                     <span className="fcr-q-label">Question {questionIndex + 1} of {questions.length}</span>
+                    {questionsSource === "fallback" && (
+                      <span className="practice-mode-badge" title="Using our curated question bank while AI question generation is unavailable.">
+                        🧩 Practice Mode
+                      </span>
+                    )}
                     <div className="fcr-q-pbar">
                       <div className="fcr-q-pfill"
                         style={{ width:`${((questionIndex+1)/questions.length)*100}%` }}/>

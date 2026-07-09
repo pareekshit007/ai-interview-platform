@@ -100,6 +100,12 @@ const Feedback = () => {
 
   return (
     <div className="fb-page">
+      <div className="fb-bg">
+        <div className="fb-orb fb-orb1" />
+        <div className="fb-orb fb-orb2" />
+        <div className="fb-orb fb-orb3" />
+        <div className="fb-grid" />
+      </div>
       <div className="fb-wrap">
 
         {/* ── HEADER ── */}

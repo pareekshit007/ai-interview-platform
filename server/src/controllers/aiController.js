@@ -5,8 +5,8 @@ const { listCompanies } = require("../data/companyProfiles");
 const getQuestions = async (req, res) => {
   try {
     const { role = "frontend", difficulty = "medium", count = 5, resumeContext = null, company = null } = req.body;
-    const questions = await generateQuestions(role, difficulty, Number(count), { company, resumeContext });
-    res.json({ questions });
+    const { questions, source } = await generateQuestions(role, difficulty, Number(count), { company, resumeContext });
+    res.json({ questions, source });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -2,8 +2,8 @@ const Interview = require("../models/Interview");
 const User = require("../models/User");
 const { generateSessionFeedback } = require("../services/feedbackGenerator");
 const { tagTopic } = require("../utils/topicTagger");
-const { getAllBadgesWithStatus } = require("../services/badgeEngine");
 const { scoreAllAnswers } = require("../services/scoreAnswers");
+const { notify, checkAndNotifyNewBadges } = require("../services/notificationService");
 
 const startInterview = async (req, res) => {
   try {
@@ -70,18 +70,32 @@ const submitInterview = async (req, res) => {
       }
     }
 
-    // ── Check newly earned badges ──────────────────────────────────────────
+    // ── Check newly earned badges (only truly NEW ones get a notification —
+    //    already-earned badges are never re-notified, tracked via
+    //    user.notifiedBadgeIds) ──────────────────────────────────────────────
     let newlyEarnedBadges = [];
     try {
       const allInterviews = await Interview.find({ user: req.user._id, completed: true })
         .sort({ createdAt: 1 });
       const freshUser = await User.findById(req.user._id);
-      const allBadges = getAllBadgesWithStatus(allInterviews, freshUser);
-      newlyEarnedBadges = allBadges.filter(b => b.earned).map(b => ({
+      const { newlyEarned } = await checkAndNotifyNewBadges({ user: freshUser, interviews: allInterviews });
+      newlyEarnedBadges = newlyEarned.map(b => ({
         id: b.id, name: b.name, icon: b.icon, tier: b.tier, color: b.color,
       }));
     } catch (badgeErr) {
       console.error("Badge check failed:", badgeErr.message);
+    }
+
+    // ── Certificate-earned notification (score threshold met) ──────────────
+    if (totalScore >= 70) {
+      notify({
+        userId: req.user._id,
+        type: "certificate_earned",
+        icon: "🎓",
+        title: "Certificate unlocked",
+        text: `You scored ${totalScore}% — your certificate for this interview is ready to download.`,
+        link: `/achievements`,
+      });
     }
 
     res.json({

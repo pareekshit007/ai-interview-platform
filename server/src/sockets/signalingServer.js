@@ -27,13 +27,21 @@ const initSignalingServer = (httpServer, allowedOrigins) => {
 
         const existing = roomSockets.get(room.code) || {};
 
-        // Allow reconnection from same role — only block a *different* socket
-        // trying to join as an already-occupied role
+        // Allow reconnection: if the same role slot is taken by a DIFFERENT socket,
+        // only block if that socket is still connected (ping check via io)
         if (as === "guest" && existing.guest && existing.guest !== socket.id) {
-          return socket.emit("room:error", { message: "Room is already full" });
+          const existingSocket = io.sockets.sockets.get(existing.guest);
+          if (existingSocket?.connected) {
+            return socket.emit("room:error", { message: "Room is already full" });
+          }
+          // Old socket disconnected — allow takeover (reconnect scenario)
         }
         if (as === "host" && existing.host && existing.host !== socket.id) {
-          return socket.emit("room:error", { message: "A host is already in this room" });
+          const existingSocket = io.sockets.sockets.get(existing.host);
+          if (existingSocket?.connected) {
+            return socket.emit("room:error", { message: "A host is already in this room" });
+          }
+          // Old socket disconnected — allow reconnection
         }
 
         existing[as] = socket.id;
@@ -57,6 +65,7 @@ const initSignalingServer = (httpServer, allowedOrigins) => {
           difficulty:        room.difficulty,
           company:           room.company,
           questions:         room.questions,
+          questionsSource:   room.questionsSource,
           hostIsInterviewer: room.hostIsInterviewer,
           peerPresent:       as === "host" ? !!existing.guest : !!existing.host,
           // Current interview state — crucial for reconnects

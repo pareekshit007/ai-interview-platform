@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { notify } = require("../services/notificationService");
 
 const getProfile = async (req, res) => {
   try {
@@ -23,6 +24,16 @@ const updateProfile = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user._id, { $set: updates }, { new: true, runValidators: false }
     ).select("-password");
+
+    notify({
+      userId: req.user._id,
+      type: "profile_updated",
+      icon: "🪪",
+      title: "Profile updated",
+      text: "Your profile changes have been saved.",
+      link: "/profile",
+    });
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

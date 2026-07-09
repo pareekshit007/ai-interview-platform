@@ -24,6 +24,16 @@ const FALLBACK_POOL = {
     "What is CORS and how does it affect frontend development?",
     "Explain debouncing and throttling with examples.",
     "What are Web Vitals and how do you optimize them?",
+    "What is the difference between a functional and a class component in React?",
+    "Explain the CSS cascade and how specificity conflicts get resolved.",
+    "What is tree shaking and how does it reduce bundle size?",
+    "How does React's key prop affect list rendering performance?",
+    "What is the difference between server-side rendering and static site generation?",
+    "Explain how you would optimize images for a fast-loading website.",
+    "What is a Web Worker and when would you use one?",
+    "How do you handle accessibility (a11y) in a React application?",
+    "What is the difference between em, rem, and px units in CSS?",
+    "Explain how React's useContext hook works and when you'd avoid it.",
   ],
   backend: [
     "Explain REST API design principles and HTTP methods.",
@@ -46,6 +56,16 @@ const FALLBACK_POOL = {
     "What is the N+1 query problem and how do you solve it?",
     "Explain microservices architecture and its tradeoffs vs monolith.",
     "How would you design a URL shortener backend?",
+    "What is the difference between PUT and PATCH HTTP methods?",
+    "Explain how you would design a job queue for background tasks.",
+    "What is idempotency and why does it matter for API design?",
+    "How does database replication work and what problems does it solve?",
+    "Explain optimistic vs pessimistic locking in a database.",
+    "What is a webhook and how does it differ from polling?",
+    "How would you design a rate limiter using a sliding window algorithm?",
+    "What is the difference between synchronous and asynchronous processing in Node.js?",
+    "Explain how you would secure sensitive data at rest and in transit.",
+    "What is GraphQL and how does it differ from REST?",
   ],
   fullstack: [
     "Walk me through how a full-stack web request flows end to end.",
@@ -68,6 +88,16 @@ const FALLBACK_POOL = {
     "How would you implement a search feature across a full-stack app?",
     "What is a monorepo and what are its advantages for full-stack development?",
     "How do you ensure your API is backward compatible as it evolves?",
+    "How would you architect a notification system across email, push, and in-app?",
+    "What is the difference between REST and WebSocket communication?",
+    "How do you handle form validation consistently across frontend and backend?",
+    "Explain how you would design a multi-tenant SaaS application.",
+    "What is the role of environment-specific configuration in a full-stack deploy pipeline?",
+    "How would you implement infinite scroll efficiently end to end?",
+    "Explain how you'd structure a full-stack app for testability (unit, integration, e2e).",
+    "How do you handle versioning of APIs consumed by multiple frontend clients?",
+    "What is the difference between a monolithic and a microservices-based full-stack architecture?",
+    "How would you implement a feature flag system across frontend and backend?",
   ],
   devops: [
     "What is Docker and why do we use containers?",
@@ -85,6 +115,14 @@ const FALLBACK_POOL = {
     "What is the ELK stack and how is it used for logging?",
     "How do you secure a cloud-based production environment?",
     "What is a container registry and how does it fit into a CI/CD pipeline?",
+    "What is the difference between a rolling deployment and a canary deployment?",
+    "How would you set up centralized logging for a multi-service system?",
+    "Explain the difference between horizontal pod autoscaling and cluster autoscaling.",
+    "What is GitOps and how does it differ from traditional CI/CD?",
+    "How do you handle configuration drift across environments?",
+    "What is a service mesh and what problems does it solve?",
+    "Explain how health checks and readiness probes work in Kubernetes.",
+    "How would you design a disaster recovery plan for a production system?",
   ],
   datascience: [
     "Explain the difference between supervised and unsupervised learning.",
@@ -102,6 +140,13 @@ const FALLBACK_POOL = {
     "How does a Random Forest differ from a single Decision Tree?",
     "What is the curse of dimensionality?",
     "Explain principal component analysis (PCA) in simple terms.",
+    "What is the difference between bagging and boosting?",
+    "Explain how a convolutional neural network processes an image.",
+    "What is data leakage and how do you prevent it during model training?",
+    "How would you handle a heavily imbalanced classification dataset?",
+    "What is the difference between a generative and a discriminative model?",
+    "Explain the ROC curve and what AUC tells you about a model.",
+    "What is hyperparameter tuning and what methods can you use for it?",
   ],
   hr: [
     "Tell me about yourself and your background.",
@@ -114,6 +159,13 @@ const FALLBACK_POOL = {
     "What motivates you in your work?",
     "Describe a time you showed leadership.",
     "How do you handle receiving critical feedback?",
+    "Tell me about a time you had to learn something completely new quickly.",
+    "How do you prioritize tasks when everything feels urgent?",
+    "Describe a mistake you made at work and what you learned from it.",
+    "Why should we hire you over other candidates?",
+    "How do you stay updated with new trends in your field?",
+    "Tell me about a time you disagreed with a manager's decision.",
+    "What does success look like to you in this role?",
   ],
   dsa: [
     "Explain the time complexity of binary search and when you would use it.",
@@ -131,6 +183,13 @@ const FALLBACK_POOL = {
     "What is a trie and when would you use it over a hash map?",
     "Explain Dijkstra's algorithm and its use case.",
     "What is the difference between a min-heap and a max-heap?",
+    "What is the time complexity of common operations on a hash map?",
+    "Explain the difference between depth-first and breadth-first search on a graph.",
+    "What is a greedy algorithm and when does it fail to find the optimal solution?",
+    "How does the union-find (disjoint set) data structure work?",
+    "Explain backtracking with an example like N-Queens or Sudoku.",
+    "What is topological sorting and when is it used?",
+    "How would you detect a cycle in a linked list?",
   ],
 };
 
@@ -197,15 +256,15 @@ Output format — ONLY the numbered questions, nothing else:
     if (lines.length < count) throw new Error(`Only ${lines.length} questions returned`);
 
     console.log(`✅ Gemini generated ${lines.length} questions for ${role} (${difficulty})`);
-    return lines.slice(0, count);
+    return { questions: lines.slice(0, count), source: "ai" };
 
   } catch (error) {
     console.error("⚠️  Gemini failed, using shuffled fallback:", error.message);
 
     // Shuffle the fallback pool so a different set is returned every time
     const pool = FALLBACK_POOL[role] || FALLBACK_POOL.fullstack;
-    return shuffle(pool).slice(0, count);
+    return { questions: shuffle(pool).slice(0, count), source: "fallback" };
   }
 };
 
-module.exports = { generateQuestions };
+module.exports = { generateQuestions, FALLBACK_POOL };

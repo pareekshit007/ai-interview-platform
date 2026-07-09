@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
-import { api } from "../../services/api";
+import { getNotifications, markNotificationRead, markAllNotificationsRead } from "../../services/notificationService";
 import "../../styles/navbar.css";
 
 const Navbar = () => {
@@ -18,6 +18,7 @@ const Navbar = () => {
   const [notifOpen,     setNotifOpen]     = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifLoading,  setNotifLoading]  = useState(false);
+  const [markingAll,    setMarkingAll]    = useState(false);
 
   const dropdownRef = useRef(null);
   const notifRef    = useRef(null);
@@ -47,7 +48,7 @@ const Navbar = () => {
     if (!isAuth) return;
     setNotifLoading(true);
     try {
-      const data = await api.get("/notifications");
+      const data = await getNotifications();
       setNotifications(data);
     } catch {
       // silently fail
@@ -59,6 +60,38 @@ const Navbar = () => {
   useEffect(() => { fetchNotifications(); }, [location.pathname]);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
+
+  // A persisted notification has a real Mongo ObjectId as its id (24 hex chars).
+  // Derived ones use synthetic ids like "score-<id>", "tip-<id>", "welcome" —
+  // those have no DB row to mark read, so we skip the API call for them.
+  const isPersistedId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+
+  const handleNotifClick = async (n) => {
+    if (isPersistedId(n.id) && n.unread) {
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, unread: false } : x)));
+      markNotificationRead(n.id).catch(() => {}); // best-effort, UI already updated optimistically
+    }
+    if (n.link) {
+      setNotifOpen(false);
+      navigate(n.link);
+    } else if (n.interviewId) {
+      setNotifOpen(false);
+      navigate(`/interview/${n.interviewId}`);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (markingAll || unreadCount === 0) return;
+    setMarkingAll(true);
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false }))); // optimistic
+    try {
+      await markAllNotificationsRead();
+    } catch {
+      // ignore — worst case a stale unread badge lingers until next fetch
+    } finally {
+      setMarkingAll(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -128,7 +161,13 @@ const Navbar = () => {
                   <div className="notif-dropdown">
                     <div className="notif-header">
                       <span>Notifications</span>
-                      <span className="notif-count">{unreadCount} new</span>
+                      {unreadCount > 0 ? (
+                        <button className="notif-mark-all" onClick={handleMarkAllRead} disabled={markingAll}>
+                          {markingAll ? "…" : "Mark all read"}
+                        </button>
+                      ) : (
+                        <span className="notif-count">All caught up</span>
+                      )}
                     </div>
                     <ul className="notif-list">
                       {notifLoading ? (
@@ -149,13 +188,8 @@ const Navbar = () => {
                           <li
                             key={n.id}
                             className={`notif-item ${n.unread ? "unread" : ""}`}
-                            onClick={() => {
-                              if (n.interviewId) {
-                                setNotifOpen(false);
-                                navigate(`/interview/${n.interviewId}`);
-                              }
-                            }}
-                            style={{ cursor: n.interviewId ? "pointer" : "default" }}
+                            onClick={() => handleNotifClick(n)}
+                            style={{ cursor: (n.link || n.interviewId) ? "pointer" : "default" }}
                           >
                             <span className="notif-icon">{n.icon}</span>
                             <div className="notif-body">

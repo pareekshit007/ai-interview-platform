@@ -106,6 +106,12 @@ const ScoreCard = () => {
 
   return (
     <div className="sc-page">
+      <div className="sc-bg">
+        <div className="sc-orb sc-orb1" />
+        <div className="sc-orb sc-orb2" />
+        <div className="sc-orb sc-orb3" />
+        <div className="sc-grid" />
+      </div>
 
       <div className="sc-header">
         <h1 className="sc-title">Interview Score Card</h1>

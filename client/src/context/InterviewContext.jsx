@@ -18,6 +18,7 @@ export const InterviewProvider = ({ children }) => {
   const [currentRole,       setCurrentRole]       = useState("");
   const [currentDifficulty, setCurrentDifficulty] = useState("medium");
   const [currentCompany,    setCurrentCompany]    = useState(null);
+  const [questionsSource,   setQuestionsSource]   = useState(null); // "ai" | "fallback" | null
 
   const startInterviewSession = async (role, difficulty = "medium", company = null) => {
     // ✅ Reset everything immediately — before any API call
@@ -33,12 +34,14 @@ export const InterviewProvider = ({ children }) => {
     setCurrentRole(role);
     setCurrentDifficulty(difficulty);
     setCurrentCompany(company);
+    setQuestionsSource(null);
     setLoading(true);
 
     try {
-      const { questions: qs }     = await fetchQuestions({ role, difficulty, count: 5, company });
-      const { interviewId: id }   = await startInterview({ role, difficulty, questions: qs, company });
+      const { questions: qs, source } = await fetchQuestions({ role, difficulty, count: 5, company });
+      const { interviewId: id }       = await startInterview({ role, difficulty, questions: qs, company });
       setQuestions(qs);
+      setQuestionsSource(source || "ai");
       setInterviewId(id);
       return true; // ✅ FIX: signal success so InterviewSetup can navigate
     } catch (err) {
@@ -151,7 +154,7 @@ export const InterviewProvider = ({ children }) => {
   return (
     <InterviewContext.Provider value={{
       questions, currentIndex, answers, scores, finished,
-      loading, error, interviewId, results,
+      loading, error, interviewId, results, questionsSource,
       startInterview: startInterview_legacy,
       startInterviewSession, retakeSession, nextQuestion, finishInterview,
     }}>

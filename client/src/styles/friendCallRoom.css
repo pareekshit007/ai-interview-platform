@@ -223,6 +223,13 @@
 }
 
 .fcr-conn-note { font-size:0.72rem; color:#64748b; text-align:center; padding:0 0.5rem; }
+.fcr-relay-note {
+  font-size: 0.72rem;
+  color: #fbbf24;
+  text-align: center;
+  padding: 6px 0.5rem 0;
+  cursor: help;
+}
 
 /* ═══════════════════════════ PANEL (right) ═══════════════════════════ */
 .fcr-panel {
@@ -319,6 +326,18 @@
 .fcr-active { display:flex; flex-direction:column; gap:0.75rem; }
 .fcr-q-header { display:flex; flex-direction:column; gap:0.3rem; }
 .fcr-q-label  { font-size:0.68rem; font-weight:700; color:#00f5a0; text-transform:uppercase; letter-spacing:0.06em; }
+.practice-mode-badge {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin-top: 2px;
+  cursor: default;
+}
 .fcr-q-pbar   { height:3px; background:rgba(255,255,255,0.07); border-radius:999px; overflow:hidden; }
 .fcr-q-pfill  { height:100%; background:linear-gradient(90deg,#00f5a0,#3b82f6); border-radius:999px; transition:width 0.4s ease; }
 
@@ -526,3 +545,30 @@
   .fcr-ctrl-icon { font-size:1.1rem; }
   .fcr-header-center { display:none; }
 }
+@media (max-width:380px) {
+  .fcr-controls { gap:0.25rem; }
+  .fcr-ctrl { width:48px; height:48px; }
+  .fcr-ctrl-icon { font-size:1rem; }
+  .fcr-ctrl-lbl { display:none; }
+}
+/* ═══════════════════════════════════
+   LIGHT MODE — Friend Call Room
+═══════════════════════════════════ */
+body.light .fcr-root      { background: #0d1117; color: #e2e8f0; }
+/* Friend call room stays dark even in light mode — video calls look bad on white */
+/* But we lighten the UI elements for contrast */
+body.light .fcr-header    { background: rgba(13,17,23,0.95); border-color: rgba(255,255,255,0.08); }
+body.light .fcr-panel     { background: rgba(13,17,23,0.9); border-color: rgba(255,255,255,0.07); }
+body.light .fcr-controls  { background: rgba(10,14,20,0.95); border-color: rgba(255,255,255,0.08); }
+body.light .fcr-tabs      { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
+body.light .fcr-tab       { color: #64748b; }
+body.light .fcr-tab.active { background: rgba(0,245,160,0.08); color: #00f5a0; border-color: rgba(0,245,160,0.2); }
+body.light .fcr-chat-body { background: rgba(0,0,0,0.2); }
+body.light .fcr-chat-input { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #e2e8f0; }
+body.light .fcr-q-box     { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
+body.light .fcr-end-screen { background: #0d1117; }
+body.light .fcr-end-q-card { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
+body.light .fcr-remark-input { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #e2e8f0; }
+body.light .fcr-role-card { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
+body.light .fcr-prestart  { background: #0d1117; }
+body.light .fcr-error-screen { background: #0d1117; }

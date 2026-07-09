@@ -10,7 +10,7 @@
   background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
 }
 body.dark .setup-page {
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: #080c14;
 }
 
 .setup-card {
@@ -555,3 +555,56 @@ body.dark .btn-spinner { border-top-color: #002a2a; border-color: rgba(0,42,42,0
 
 .setup-section { animation: fadeIn 0.25s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* ── Background orbs + grid (matches dashboard) ── */
+.setup-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.setup-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--orb-opacity, 0.13); }
+.setup-orb1 { width:500px;height:500px;background:radial-gradient(circle,#00f5a0,transparent);top:-160px;left:-160px;animation:setupFloat 12s ease-in-out infinite alternate; }
+.setup-orb2 { width:420px;height:420px;background:radial-gradient(circle,#3b82f6,transparent);bottom:-120px;right:-120px;animation:setupFloat 15s ease-in-out infinite alternate-reverse; }
+.setup-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:40px 40px;opacity:var(--grid-opacity,1); }
+@keyframes setupFloat { from{transform:translate(0,0) scale(1)} to{transform:translate(24px,18px) scale(1.09)} }
+
+/* Ensure content sits above orb background */
+.setup-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════
+   LIGHT MODE — Interview Setup
+═══════════════════════════════════ */
+body.light .setup-page     { background: #f0f4f8; }
+body.light .setup-bg       { display: none; }
+body.light .setup-card     { background: #fff; border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 24px rgba(0,0,0,0.08); color: #1e2a35; }
+body.light .diff-card      { background: #fff; border-color: rgba(0,0,0,0.1); box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+body.light .diff-card:hover { border-color: #0d7a5f; box-shadow: 0 4px 16px rgba(13,122,95,0.12); }
+body.light .diff-card.selected { border-color: #0d7a5f !important; }
+body.light .diff-label     { color: #1e2a35; }
+body.light .diff-desc      { color: #606778; }
+body.light .diff-tag       { color: #606778; background: rgba(0,0,0,0.05); }
+body.light .diff-recommended { background: #d97706; color: #fff; }
+body.light .diff-topic     { background: rgba(0,0,0,0.05); color: #606778; }
+body.light .device-card    { background: #fff; border-color: rgba(0,0,0,0.1); }
+body.light .device-info strong { color: #1e2a35; }
+body.light .device-info small  { color: #606778; }
+body.light .ready-summary  { background: #fff; border-color: rgba(0,0,0,0.1); }
+body.light .ready-tips     { background: rgba(13,122,95,0.05); border-color: rgba(13,122,95,0.15); }
+body.light .ready-tips li  { color: #606778; }
+body.light .summary-label  { color: #606778; }
+body.light .summary-value  { color: #1e2a35; }
+body.light .summary-row    { border-color: rgba(0,0,0,0.07); }
+body.light .setup-step     { color: #606778; }
+body.light .setup-step.active { color: #0d7a5f; }
+body.light .setup-step.done   { color: #2e7d4f; }
+body.light .step-dot       { background: #dde1e7; color: #606778; }
+body.light .setup-step.active .step-dot { background: #0d7a5f; color: #fff; }
+body.light .setup-step.done .step-dot   { background: #2e7d4f; color: #fff; }
+body.light .step-line      { background: #d1d5db; }
+body.light .setup-error    { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+body.light .question-label { color: #0d7a5f; }
+body.light .company-card   { background: #fff; border-color: rgba(0,0,0,0.1); }
+body.light .company-card:hover { border-color: #0d7a5f; }
+body.light .company-card.selected { border-color: #0d7a5f !important; }
+body.light .company-name   { color: #1e2a35; }
+body.light .company-desc   { color: #606778; }
+body.light .nav-btn.primary { background: linear-gradient(135deg,#0d7a5f,#2563eb) !important; color: #fff !important; }
+body.light .nav-btn.ghost  { background: #f1f3f6; border-color: rgba(0,0,0,0.14); color: #606778; }

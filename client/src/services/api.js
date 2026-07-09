@@ -44,4 +44,11 @@ export const api = {
       headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(body),
     }).then(handleResponse),
+
+  patch: (path, body) =>
+    fetch(`${BASE_URL}${path}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    }).then(handleResponse),
 };

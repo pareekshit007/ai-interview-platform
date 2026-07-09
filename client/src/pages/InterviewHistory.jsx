@@ -104,6 +104,11 @@ const InterviewHistory = () => {
 
   return (
     <div className="ih-page">
+      <div className="ih-bg">
+        <div className="ih-orb ih-orb1" />
+        <div className="ih-orb ih-orb2" />
+        <div className="ih-grid" />
+      </div>
       {loading && <Loader text="Loading history…" />}
 
       <div className="ih-hero">

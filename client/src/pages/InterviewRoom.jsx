@@ -18,7 +18,7 @@ const InterviewRoom = () => {
   const [inputMode,  setInputMode]  = useState("speech"); // "speech" | "text"
   const [typedText,  setTypedText]  = useState("");
 
-  const { questions, currentIndex, nextQuestion, finishInterview } = useInterview();
+  const { questions, currentIndex, nextQuestion, finishInterview, questionsSource } = useInterview();
 
   const { transcript, isRecording, error, permState, startRecording, stopRecording, resetTranscript } =
     useRecorder({ echoSuppression: audioMode === "speaker" });
@@ -115,6 +115,11 @@ const InterviewRoom = () => {
   if (!audioMode) {
     return (
       <div className="interview-page">
+        <div className="interview-bg">
+          <div className="interview-orb interview-orb1" />
+          <div className="interview-orb interview-orb2" />
+          <div className="interview-grid" />
+        </div>
         <div className="audio-mode-card">
           <div className="audio-mode-header">
             <div className="audio-mode-emoji">🎙</div>
@@ -152,6 +157,11 @@ const InterviewRoom = () => {
 
   return (
     <div className="interview-page">
+      <div className="interview-bg">
+        <div className="interview-orb interview-orb1" />
+        <div className="interview-orb interview-orb2" />
+        <div className="interview-grid" />
+      </div>
       <div className="interview-layout">
 
         {/* LEFT — Camera */}
@@ -215,7 +225,17 @@ const InterviewRoom = () => {
           <Timer duration={60} questionIndex={currentIndex} onTimeUp={handleNext} />
 
           <div className="question-card">
-            <div className="question-label">Question {currentIndex + 1} / {questions.length}</div>
+            <div className="question-label">
+              Question {currentIndex + 1} / {questions.length}
+              {questionsSource === "fallback" && (
+                <span
+                  className="practice-mode-badge"
+                  title="AI question generation is temporarily unavailable — you're practicing with our curated question bank instead."
+                >
+                  🧩 Practice Mode
+                </span>
+              )}
+            </div>
             <p className="question-text">{questions[currentIndex]}</p>
           </div>
 

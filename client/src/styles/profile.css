@@ -1153,4 +1153,65 @@ body.light .pf-toggle--on     { background: linear-gradient(135deg,#0d7a5f,#2563
   .pf-view-grid { grid-template-columns: 1fr; }
   .pf-repo-input{ flex-direction: column; }
   .pf-schedule-row { gap: 8px; }
+  .pf-social-row, .pf-btn-group, .pf-resume-actions { flex-wrap: wrap; }
 }
+
+/* Very narrow phones — sidebar nav items would overflow at min-width:100px */
+@media (max-width: 380px) {
+  .pf-nav-item { min-width: 80px; font-size: 0.8rem; padding: 0.6rem 0.5rem; }
+}
+
+/* ── Change password form ── */
+.pf-pw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+}
+.pf-pw-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pf-pw-input-row input {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e2e8f0 !important;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.pf-pw-input-row input:focus {
+  border-color: rgba(0,245,160,0.4) !important;
+  box-shadow: 0 0 0 3px rgba(0,245,160,0.06);
+}
+.pf-pw-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 6px;
+  flex-shrink: 0;
+}
+.pf-pw-hint-card {
+  max-width: 420px;
+}
+.pf-pw-hint-text {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0;
+}
+.pf-pw-hint-text a {
+  color: #00f5a0;
+  text-decoration: underline;
+}
+
+body.light .pf-pw-input-row input { background: #f8fafc !important; border-color: rgba(0,0,0,0.12) !important; color: #1e2a35 !important; }
+body.light .pf-pw-input-row input:focus { border-color: rgba(13,122,95,0.5) !important; }
+body.light .pf-pw-hint-text   { color: #64748b; }
+body.light .pf-pw-hint-text a { color: #0d7a5f; }

@@ -3,7 +3,7 @@
 ================================ */
 .fb-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: #080c14;
   padding: 48px 20px 80px;
   color: #e0f7fa;
 }
@@ -448,3 +448,17 @@ body.light .fb-btn-ghost {
   color: #4a5568;
 }
 body.light .fb-btn-ghost:hover { background: #e8eaed; color: #1e2a35; }
+/* ── Background orbs + grid (matches dashboard) ── */
+.fb-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.fb-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: var(--orb-opacity, 0.13); }
+.fb-orb1 { width:500px;height:500px;background:radial-gradient(circle,#00f5a0,transparent);top:-150px;left:-150px;animation:fbFloat 12s ease-in-out infinite alternate; }
+.fb-orb2 { width:450px;height:450px;background:radial-gradient(circle,#3b82f6,transparent);bottom:-120px;right:-120px;animation:fbFloat 15s ease-in-out infinite alternate-reverse; }
+.fb-orb3 { width:280px;height:280px;background:radial-gradient(circle,#a78bfa,transparent);top:50%;left:55%;animation:fbFloat 10s ease-in-out infinite alternate; }
+.fb-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:40px 40px;opacity:var(--grid-opacity,1); }
+@keyframes fbFloat { from{transform:translate(0,0) scale(1)} to{transform:translate(30px,20px) scale(1.1)} }
+
+/* Ensure content sits above orb background */
+.fb-wrap {
+  position: relative;
+  z-index: 1;
+}

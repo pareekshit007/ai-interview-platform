@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Loader from "../components/common/Loader";
 import { getProfile, updateProfile, uploadResume } from "../services/userService";
+import { changePassword } from "../services/authService";
 import "../styles/profile.css";
 
 const Profile = () => {
@@ -36,6 +37,17 @@ const Profile = () => {
   const [reminderSaving,  setReminderSaving]  = useState(false);
   const [reminderTesting, setReminderTesting] = useState(false);
   const [reminderToast,   setReminderToast]   = useState(null);
+
+  // Change password state
+  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwToast,  setPwToast]  = useState(null);
+  const [showPw,   setShowPw]   = useState({ current: false, next: false, confirm: false });
+
+  const showPwToast = (msg, type = "success") => {
+    setPwToast({ msg, type });
+    setTimeout(() => setPwToast(null), 3500);
+  };
 
   const showReminderToast = (msg, type = "success") => {
     setReminderToast({ msg, type });
@@ -128,6 +140,35 @@ const Profile = () => {
       showReminderToast(err.message || "Failed to send", "error");
     } finally {
       setReminderTesting(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    const { currentPassword, newPassword, confirmPassword } = pwForm;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return showPwToast("Fill in all password fields", "error");
+    }
+    if (newPassword.length < 6) {
+      return showPwToast("New password must be at least 6 characters", "error");
+    }
+    if (newPassword !== confirmPassword) {
+      return showPwToast("New passwords do not match", "error");
+    }
+    if (newPassword === currentPassword) {
+      return showPwToast("New password must be different from the current one", "error");
+    }
+
+    setPwSaving(true);
+    try {
+      const data = await changePassword({ currentPassword, newPassword });
+      showPwToast(data.message || "Password updated successfully");
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (err) {
+      showPwToast(err.message || "Failed to update password", "error");
+    } finally {
+      setPwSaving(false);
     }
   };
 
@@ -236,6 +277,7 @@ const Profile = () => {
     { id:"ai",        label:"AI Context",      icon:"🤖" },
     { id:"projects",  label:"Projects",        icon:"🛠️" },
     { id:"reminders", label:"Reminders",       icon:"📧" },
+    { id:"security",  label:"Security",        icon:"🔒" },
   ];
 
   const completionItems = [
@@ -727,6 +769,86 @@ const Profile = () => {
                       </div>
                     </>
                   )}
+                </div>
+              )}
+
+              {/* ════════ SECURITY ════════ */}
+              {activeSection === "security" && (
+                <div className="pf-section-wrap">
+                  <SectionHeader icon="🔒" title="Password & Security"
+                    sub="Update your password. We never store or display your actual password anywhere." />
+
+                  {pwToast && (
+                    <div className={`pf-toast pf-toast--${pwToast.type}`}>
+                      {pwToast.type === "success" ? "✅" : "❌"} {pwToast.msg}
+                    </div>
+                  )}
+
+                  <div className="pf-card">
+                    <div className="pf-card-label">CHANGE PASSWORD</div>
+                    <form onSubmit={handleChangePassword} className="pf-pw-form">
+                      <div className="pf-field">
+                        <label>Current Password</label>
+                        <div className="pf-pw-input-row">
+                          <input
+                            type={showPw.current ? "text" : "password"}
+                            value={pwForm.currentPassword}
+                            onChange={(e) => setPwForm(p => ({ ...p, currentPassword: e.target.value }))}
+                            placeholder="Enter current password"
+                          />
+                          <button type="button" className="pf-pw-toggle"
+                            onClick={() => setShowPw(s => ({ ...s, current: !s.current }))}>
+                            {showPw.current ? "🙈" : "👁️"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="pf-field">
+                        <label>New Password</label>
+                        <div className="pf-pw-input-row">
+                          <input
+                            type={showPw.next ? "text" : "password"}
+                            value={pwForm.newPassword}
+                            onChange={(e) => setPwForm(p => ({ ...p, newPassword: e.target.value }))}
+                            placeholder="Min 6 characters, letters + numbers"
+                          />
+                          <button type="button" className="pf-pw-toggle"
+                            onClick={() => setShowPw(s => ({ ...s, next: !s.next }))}>
+                            {showPw.next ? "🙈" : "👁️"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="pf-field">
+                        <label>Confirm New Password</label>
+                        <div className="pf-pw-input-row">
+                          <input
+                            type={showPw.confirm ? "text" : "password"}
+                            value={pwForm.confirmPassword}
+                            onChange={(e) => setPwForm(p => ({ ...p, confirmPassword: e.target.value }))}
+                            placeholder="Re-enter new password"
+                          />
+                          <button type="button" className="pf-pw-toggle"
+                            onClick={() => setShowPw(s => ({ ...s, confirm: !s.confirm }))}>
+                            {showPw.confirm ? "🙈" : "👁️"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button className="pf-btn-save" type="submit" disabled={pwSaving}>
+                        {pwSaving ? "Updating..." : "🔑 Update Password"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="pf-card pf-pw-hint-card">
+                    <div className="pf-card-label">FORGOT YOUR CURRENT PASSWORD?</div>
+                    <p className="pf-pw-hint-text">
+                      If you can't remember your current password, log out and use{" "}
+                      <Link to="/forgot-password">Forgot Password</Link> from the login page instead —
+                      it verifies your email with a one-time code before letting you set a new one.
+                    </p>
+                  </div>
                 </div>
               )}
 

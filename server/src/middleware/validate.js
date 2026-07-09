@@ -14,6 +14,21 @@ const handleValidation = (req, res, next) => {
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
+const validateSendOtp = [
+  body("name")
+    .optional()
+    .trim()
+    .isLength({ max: 50 }).withMessage("Name must be under 50 characters"),
+
+  body("email")
+    .trim()
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Enter a valid email address")
+    .normalizeEmail(),
+
+  handleValidation,
+];
+
 const validateRegister = [
   body("name")
     .trim()
@@ -32,6 +47,12 @@ const validateRegister = [
     .matches(/[A-Za-z]/).withMessage("Password must contain at least one letter")
     .matches(/[0-9]/).withMessage("Password must contain at least one number"),
 
+  body("otp")
+    .trim()
+    .notEmpty().withMessage("Verification code is required")
+    .isLength({ min: 6, max: 6 }).withMessage("Verification code must be 6 digits")
+    .isNumeric().withMessage("Verification code must be numeric"),
+
   handleValidation,
 ];
 
@@ -44,6 +65,51 @@ const validateLogin = [
 
   body("password")
     .notEmpty().withMessage("Password is required"),
+
+  handleValidation,
+];
+
+const validateForgotPassword = [
+  body("email")
+    .trim()
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Enter a valid email address")
+    .normalizeEmail(),
+
+  handleValidation,
+];
+
+const validateResetPassword = [
+  body("email")
+    .trim()
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Enter a valid email address")
+    .normalizeEmail(),
+
+  body("otp")
+    .trim()
+    .notEmpty().withMessage("Verification code is required")
+    .isLength({ min: 6, max: 6 }).withMessage("Verification code must be 6 digits")
+    .isNumeric().withMessage("Verification code must be numeric"),
+
+  body("newPassword")
+    .notEmpty().withMessage("New password is required")
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+    .matches(/[A-Za-z]/).withMessage("Password must contain at least one letter")
+    .matches(/[0-9]/).withMessage("Password must contain at least one number"),
+
+  handleValidation,
+];
+
+const validateChangePassword = [
+  body("currentPassword")
+    .notEmpty().withMessage("Current password is required"),
+
+  body("newPassword")
+    .notEmpty().withMessage("New password is required")
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+    .matches(/[A-Za-z]/).withMessage("Password must contain at least one letter")
+    .matches(/[0-9]/).withMessage("Password must contain at least one number"),
 
   handleValidation,
 ];
@@ -258,13 +324,59 @@ const validateSessionFeedback = [
   handleValidation,
 ];
 
+// ── Resume-based interview ─────────────────────────────────────────────────
+
+const validateSubmitResumeInterview = [
+  param("id")
+    .isMongoId().withMessage("Invalid interview ID"),
+
+  body("answers")
+    .isArray({ min: 1, max: 20 }).withMessage("answers must be a non-empty array (max 20)"),
+
+  body("answers.*.questionIndex")
+    .isInt({ min: 0 }).withMessage("questionIndex must be a non-negative integer"),
+
+  body("answers.*.questionText")
+    .trim()
+    .notEmpty().withMessage("questionText is required")
+    .isLength({ max: 500 }).withMessage("questionText too long"),
+
+  body("answers.*.transcript")
+    .optional()
+    .trim()
+    .isLength({ max: 5000 }).withMessage("transcript too long (max 5000 chars)"),
+
+  body("answers.*.phase")
+    .optional({ nullable: true })
+    .isIn(["technical", "hr"]).withMessage("phase must be technical or hr"),
+
+  body("proctor.violations")
+    .optional()
+    .isInt({ min: 0, max: 1000 }).withMessage("proctor.violations must be a non-negative integer"),
+
+  body("proctor.flagged")
+    .optional()
+    .isBoolean().withMessage("proctor.flagged must be boolean"),
+
+  body("proctor.log")
+    .optional()
+    .isArray({ max: 50 }).withMessage("proctor.log must be an array (max 50 entries)"),
+
+  handleValidation,
+];
+
 module.exports = {
+  validateSendOtp,
   validateRegister,
   validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+  validateChangePassword,
   validateUpdateProfile,
   validateStartInterview,
   validateSubmitInterview,
   validateGetQuestions,
   validateAnswerFeedback,
   validateSessionFeedback,
+  validateSubmitResumeInterview,
 };
