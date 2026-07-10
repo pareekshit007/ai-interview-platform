@@ -16,6 +16,8 @@ const emailReminderRoutes  = require("./routes/emailReminderRoutes");
 const achievementsRoutes   = require("./routes/achievementsRoutes");   // ← NEW
 const turnRoutes           = require("./routes/turnRoutes");
 const resumeInterviewRoutes = require("./routes/resumeInterviewRoutes");   // ← NEW
+const statsRoutes          = require("./routes/statsRoutes");             // ← NEW: real homepage stats
+const testimonialRoutes    = require("./routes/testimonialRoutes");       // ← NEW: real user testimonials
 
 const app = express();
 
@@ -78,6 +80,8 @@ app.use("/api/reminders",     emailReminderRoutes);
 app.use("/api/achievements",  achievementsRoutes);   // ← NEW
 app.use("/api/turn",          turnRoutes);
 app.use("/api/resume-interview", aiLimiter, resumeInterviewRoutes);   // ← NEW
+app.use("/api/stats",         statsRoutes);          // ← NEW
+app.use("/api/testimonials",  testimonialRoutes);    // ← NEW
 
 app.use(errorHandler);
 

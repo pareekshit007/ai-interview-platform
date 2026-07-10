@@ -828,3 +828,116 @@ body.light .db-strip-text { color: #4a5568; }
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ── SHARE YOUR EXPERIENCE ── */
+.db-testimonial-card {
+  background: linear-gradient(135deg, rgba(0,245,160,0.05), rgba(167,139,250,0.05));
+  border: 1px solid rgba(0,245,160,0.12);
+  border-radius: 16px;
+  padding: 1.5rem;
+  animation: fadeSlideUp 0.5s ease 0.35s both;
+}
+
+.db-testimonial-card h3 {
+  font-size: 1.05rem;
+  color: #e2e8f0;
+  margin: 0 0 0.35rem;
+}
+
+.db-testimonial-sub {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0 0 1rem;
+}
+
+.db-testimonial-thanks {
+  font-size: 0.95rem;
+  color: #00f5a0;
+  text-align: center;
+  margin: 0;
+}
+
+.db-testimonial-stars {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.db-testimonial-stars .star {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: rgba(255,255,255,0.2);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.db-testimonial-stars .star.active {
+  color: #f59e0b;
+}
+
+.db-testimonial-stars .star:hover {
+  transform: scale(1.15);
+}
+
+.db-testimonial-card textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 0.75rem;
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.88rem;
+  resize: vertical;
+  min-height: 70px;
+}
+
+.db-testimonial-card textarea:focus {
+  outline: none;
+  border-color: #00f5a0;
+}
+
+.db-testimonial-error {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin: 0.5rem 0 0;
+}
+
+.db-testimonial-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.db-testimonial-submit {
+  background: #00f5a0;
+  color: #04120b;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.db-testimonial-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.db-testimonial-dismiss {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #94a3b8;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+body.light .db-testimonial-card { background: linear-gradient(135deg, rgba(0,166,109,0.06), rgba(139,92,246,0.06)); border-color: rgba(0,166,109,0.15); }
+body.light .db-testimonial-card h3 { color: #1e2a35; }
+body.light .db-testimonial-card textarea { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.12); color: #1e2a35; }
