@@ -1,17 +1,28 @@
 import { useState } from "react";
+import { sendContactMessage } from "../services/contactService";
 import "../styles/contact.css";
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate send
-    setTimeout(() => setSent(true), 600);
+    setError("");
+    setSending(true);
+    try {
+      await sendContactMessage(form);
+      setSent(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong sending your message — please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const info = [
@@ -117,8 +128,9 @@ const Contact = () => {
                     <label>Message</label>
                     <textarea name="message" placeholder="Tell us more about your query..." rows={5} value={form.message} onChange={handleChange} required />
                   </div>
-                  <button type="submit" className="ct-submit">
-                    Send Message →
+                  {error && <p className="ct-error">{error}</p>}
+                  <button type="submit" className="ct-submit" disabled={sending}>
+                    {sending ? "Sending…" : "Send Message →"}
                   </button>
                 </form>
               )}
