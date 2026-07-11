@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchHistory } from "../services/interviewService";
 import { logoutUser } from "../services/authService";
-import { getMyTestimonial, submitTestimonial } from "../services/testimonialService";
 import Loader from "../components/common/Loader";
 import "../styles/dashboard.css";
 
@@ -13,15 +12,6 @@ const Dashboard = () => {
   const [stats,    setStats]    = useState({ total: 0, avgScore: 0, bestScore: 0, lastRole: "—" });
   const [recentInterviews, setRecentInterviews] = useState([]);
   const [loadError, setLoadError] = useState("");
-
-  // "Share your experience" widget -- only shown to users who've completed
-  // an interview and haven't already left a testimonial.
-  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
-  const [testimonialSubmitted, setTestimonialSubmitted] = useState(false);
-  const [testimonialQuote, setTestimonialQuote] = useState("");
-  const [testimonialRating, setTestimonialRating] = useState(5);
-  const [testimonialSubmitting, setTestimonialSubmitting] = useState(false);
-  const [testimonialError, setTestimonialError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -38,35 +28,10 @@ const Dashboard = () => {
         const lastRole  = interviews[0]?.role || "—";
         setStats({ total, avgScore, bestScore, lastRole });
         setRecentInterviews(interviews.slice(0, 3));
-
-        // Only worth asking for a testimonial once they've actually
-        // completed at least one interview.
-        getMyTestimonial()
-          .then((res) => setShowTestimonialForm(!res.submitted))
-          .catch(() => {});
       })
       .catch((err) => setLoadError(err.message || "Failed to load your data — please refresh."))
       .finally(() => setLoading(false));
   }, [navigate]);
-
-  const handleSubmitTestimonial = async (e) => {
-    e.preventDefault();
-    if (!testimonialQuote.trim()) {
-      setTestimonialError("Please write a short line about your experience.");
-      return;
-    }
-    setTestimonialSubmitting(true);
-    setTestimonialError("");
-    try {
-      await submitTestimonial(testimonialQuote.trim(), testimonialRating);
-      setTestimonialSubmitted(true);
-      setShowTestimonialForm(false);
-    } catch (err) {
-      setTestimonialError(err.message || "Couldn't submit your feedback — please try again.");
-    } finally {
-      setTestimonialSubmitting(false);
-    }
-  };
 
   const handleLogout = () => { logoutUser(); navigate("/login"); };
 
@@ -292,57 +257,6 @@ const Dashboard = () => {
             </div>
 
           </div>
-
-          {/* SHARE YOUR EXPERIENCE */}
-          {(showTestimonialForm || testimonialSubmitted) && (
-            <div className="db-testimonial-card">
-              {testimonialSubmitted ? (
-                <p className="db-testimonial-thanks">🙌 Thanks for sharing your feedback — it may appear on our homepage!</p>
-              ) : (
-                <form onSubmit={handleSubmitTestimonial}>
-                  <h3>Enjoying the platform?</h3>
-                  <p className="db-testimonial-sub">Share your experience — real feedback from real users appears on our homepage.</p>
-
-                  <div className="db-testimonial-stars">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        type="button"
-                        key={n}
-                        className={n <= testimonialRating ? "star active" : "star"}
-                        onClick={() => setTestimonialRating(n)}
-                        aria-label={`${n} star${n > 1 ? "s" : ""}`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-
-                  <textarea
-                    value={testimonialQuote}
-                    onChange={(e) => setTestimonialQuote(e.target.value)}
-                    placeholder="What's helped you most about practicing here?"
-                    maxLength={400}
-                    rows={3}
-                  />
-
-                  {testimonialError && <p className="db-testimonial-error">{testimonialError}</p>}
-
-                  <div className="db-testimonial-actions">
-                    <button type="submit" className="db-testimonial-submit" disabled={testimonialSubmitting}>
-                      {testimonialSubmitting ? "Submitting…" : "Submit feedback"}
-                    </button>
-                    <button
-                      type="button"
-                      className="db-testimonial-dismiss"
-                      onClick={() => setShowTestimonialForm(false)}
-                    >
-                      Maybe later
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          )}
 
           {/* MOTIVATIONAL FOOTER */}
           <div className="db-footer-strip">

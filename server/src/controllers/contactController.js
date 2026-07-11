@@ -41,8 +41,6 @@ const submitContactForm = async (req, res) => {
     const cleanSubject = (subject || "").trim().slice(0, 150);
     const cleanMessage = message.trim().slice(0, 5000);
 
-    // 1) Deliver the message to our inbox
-    console.log("[contact] Sending to:", process.env.EMAIL_USER, "| from EMAIL_USER length:", (process.env.EMAIL_USER || "").length);
     const info = await transporter.sendMail({
       from: `"AI Interview Platform Contact Form" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
@@ -50,7 +48,6 @@ const submitContactForm = async (req, res) => {
       subject: `📬 Contact form: ${cleanSubject || "New message from " + cleanName}`,
       html: buildInboxHTML({ name: cleanName, email, subject: cleanSubject, message: cleanMessage }),
     });
-    console.log("[contact] Gmail response — messageId:", info.messageId, "| accepted:", info.accepted, "| rejected:", info.rejected);
 
     // 2) Auto-confirmation back to the sender (best-effort — don't fail the
     // request if this one bounces, the important email above already sent)

@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useInterview } from "../context/InterviewContext";
+import { getMyTestimonial, submitTestimonial } from "../services/testimonialService";
 import "../styles/feedback.css";
 
 const parseFeedback = (text) => {
@@ -97,6 +99,40 @@ const Feedback = () => {
     { label: "Sentiment",     val: results?.sentiment     ?? 0, color: "#22c55e" },
     { label: "Communication", val: results?.communication ?? 0, color: "#f59e0b" },
   ];
+
+  // "Share your experience" — shown right after a completed session, since
+  // that's the moment someone's most likely to have something to say.
+  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
+  const [testimonialSubmitted, setTestimonialSubmitted] = useState(false);
+  const [testimonialQuote, setTestimonialQuote] = useState("");
+  const [testimonialRating, setTestimonialRating] = useState(5);
+  const [testimonialSubmitting, setTestimonialSubmitting] = useState(false);
+  const [testimonialError, setTestimonialError] = useState("");
+
+  useEffect(() => {
+    getMyTestimonial()
+      .then((res) => setShowTestimonialForm(!res.submitted))
+      .catch(() => {});
+  }, []);
+
+  const handleSubmitTestimonial = async (e) => {
+    e.preventDefault();
+    if (!testimonialQuote.trim()) {
+      setTestimonialError("Please write a short line about your experience.");
+      return;
+    }
+    setTestimonialSubmitting(true);
+    setTestimonialError("");
+    try {
+      await submitTestimonial(testimonialQuote.trim(), testimonialRating);
+      setTestimonialSubmitted(true);
+      setShowTestimonialForm(false);
+    } catch (err) {
+      setTestimonialError(err.message || "Couldn't submit your feedback — please try again.");
+    } finally {
+      setTestimonialSubmitting(false);
+    }
+  };
 
   return (
     <div className="fb-page">
@@ -233,6 +269,58 @@ const Feedback = () => {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* ── SHARE YOUR EXPERIENCE ── */}
+        {(showTestimonialForm || testimonialSubmitted) && (
+          <div className="fb-card fb-testimonial-card">
+            {testimonialSubmitted ? (
+              <p className="fb-testimonial-thanks">🙌 Thanks for sharing your feedback — it may appear on our homepage!</p>
+            ) : (
+              <form onSubmit={handleSubmitTestimonial}>
+                <h3 className="fb-card-title">Enjoying the platform?</h3>
+                <p className="fb-testimonial-sub">Share your experience — real feedback from real users appears on our homepage.</p>
+
+                <div className="fb-testimonial-stars">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      type="button"
+                      key={n}
+                      className={n <= testimonialRating ? "star active" : "star"}
+                      onClick={() => setTestimonialRating(n)}
+                      aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  className="fb-testimonial-textarea"
+                  value={testimonialQuote}
+                  onChange={(e) => setTestimonialQuote(e.target.value)}
+                  placeholder="What's helped you most about practicing here?"
+                  maxLength={400}
+                  rows={3}
+                />
+
+                {testimonialError && <p className="fb-testimonial-error">{testimonialError}</p>}
+
+                <div className="fb-testimonial-actions">
+                  <button type="submit" className="fb-testimonial-submit" disabled={testimonialSubmitting}>
+                    {testimonialSubmitting ? "Submitting…" : "Submit feedback"}
+                  </button>
+                  <button
+                    type="button"
+                    className="fb-testimonial-dismiss"
+                    onClick={() => setShowTestimonialForm(false)}
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         )}
 
