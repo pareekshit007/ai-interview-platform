@@ -1,17 +1,32 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import Loader from "../components/common/Loader";
 import { getProfile, updateProfile, uploadResume } from "../services/userService";
 import { changePassword } from "../services/authService";
 import "../styles/profile.css";
 
+const VALID_SECTIONS = ["personal", "ai", "projects", "reminders", "security"];
+
 const Profile = () => {
   const navigate  = useNavigate();
+  const location  = useLocation();
   const [loading,        setLoading]        = useState(false);
   const [saveSuccess,    setSaveSuccess]    = useState(false);
   const [resumeUploading,setResumeUploading]= useState(false);
   const [isEditing,      setIsEditing]      = useState(false);
-  const [activeSection,  setActiveSection]  = useState("personal");
+  const [activeSection,  setActiveSection]  = useState(() => {
+    const requested = new URLSearchParams(location.search).get("section");
+    return VALID_SECTIONS.includes(requested) ? requested : "personal";
+  });
+
+  // If the ?section= query param changes after the page has already mounted
+  // (e.g. clicking a notification while already on /profile), jump to it.
+  useEffect(() => {
+    const requested = new URLSearchParams(location.search).get("section");
+    if (VALID_SECTIONS.includes(requested)) {
+      setActiveSection(requested);
+    }
+  }, [location.search]);
 
   const skillOptions = [
     "HTML","CSS","JavaScript","React","Node.js","Express",

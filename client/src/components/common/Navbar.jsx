@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
-import { getNotifications, markNotificationRead, markAllNotificationsRead } from "../../services/notificationService";
+import { getNotifications, getAllNotifications, markNotificationRead, markAllNotificationsRead } from "../../services/notificationService";
 import "../../styles/navbar.css";
 
 const Navbar = () => {
@@ -19,6 +19,11 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [notifLoading,  setNotifLoading]  = useState(false);
   const [markingAll,    setMarkingAll]    = useState(false);
+
+  // "View all" modal
+  const [showAllOpen,     setShowAllOpen]     = useState(false);
+  const [allNotifs,        setAllNotifs]      = useState([]);
+  const [allNotifsLoading, setAllNotifsLoading] = useState(false);
 
   const dropdownRef = useRef(null);
   const notifRef    = useRef(null);
@@ -59,6 +64,35 @@ const Navbar = () => {
 
   useEffect(() => { fetchNotifications(); }, [location.pathname]);
 
+  const fetchAllNotifications = async () => {
+    if (!isAuth) return;
+    setAllNotifsLoading(true);
+    try {
+      const data = await getAllNotifications();
+      setAllNotifs(data);
+    } catch {
+      // silently fail
+    } finally {
+      setAllNotifsLoading(false);
+    }
+  };
+
+  const openShowAll = () => {
+    setNotifOpen(false);
+    setShowAllOpen(true);
+    fetchAllNotifications();
+  };
+
+  const closeShowAll = () => setShowAllOpen(false);
+
+  // Close the "View all" modal on Escape
+  useEffect(() => {
+    if (!showAllOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") closeShowAll(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showAllOpen]);
+
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   // A persisted notification has a real Mongo ObjectId as its id (24 hex chars).
@@ -69,13 +103,16 @@ const Navbar = () => {
   const handleNotifClick = async (n) => {
     if (isPersistedId(n.id) && n.unread) {
       setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, unread: false } : x)));
+      setAllNotifs((prev) => prev.map((x) => (x.id === n.id ? { ...x, unread: false } : x)));
       markNotificationRead(n.id).catch(() => {}); // best-effort, UI already updated optimistically
     }
     if (n.link) {
       setNotifOpen(false);
+      setShowAllOpen(false);
       navigate(n.link);
     } else if (n.interviewId) {
       setNotifOpen(false);
+      setShowAllOpen(false);
       navigate(`/interview/${n.interviewId}`);
     }
   };
@@ -84,6 +121,7 @@ const Navbar = () => {
     if (markingAll || unreadCount === 0) return;
     setMarkingAll(true);
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false }))); // optimistic
+    setAllNotifs((prev) => prev.map((n) => ({ ...n, unread: false })));
     try {
       await markAllNotificationsRead();
     } catch {
@@ -200,7 +238,7 @@ const Navbar = () => {
                         ))
                       )}
                     </ul>
-                    <Link to="/interview-history" className="notif-footer">View all →</Link>
+                    <button type="button" className="notif-footer" onClick={openShowAll}>View all →</button>
                   </div>
                 )}
               </div>
@@ -287,6 +325,49 @@ const Navbar = () => {
           </button>
         </div>
       </nav>
+
+      {/* All notifications modal */}
+      {showAllOpen && (
+        <div className="notif-modal-overlay" onClick={closeShowAll}>
+          <div className="notif-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="notif-modal-header">
+              <span>All notifications</span>
+              <button type="button" className="notif-modal-close" onClick={closeShowAll} aria-label="Close">✕</button>
+            </div>
+            <ul className="notif-list notif-list--modal">
+              {allNotifsLoading ? (
+                <li className="notif-item">
+                  <span className="notif-icon">⏳</span>
+                  <div className="notif-body"><p>Loading…</p></div>
+                </li>
+              ) : allNotifs.length === 0 ? (
+                <li className="notif-item">
+                  <span className="notif-icon">🔔</span>
+                  <div className="notif-body">
+                    <p>No notifications yet</p>
+                    <span>Complete an interview to get started</span>
+                  </div>
+                </li>
+              ) : (
+                allNotifs.map((n) => (
+                  <li
+                    key={n.id}
+                    className={`notif-item ${n.unread ? "unread" : ""}`}
+                    onClick={() => handleNotifClick(n)}
+                    style={{ cursor: (n.link || n.interviewId) ? "pointer" : "default" }}
+                  >
+                    <span className="notif-icon">{n.icon}</span>
+                    <div className="notif-body">
+                      <p>{n.text}</p>
+                      <span>{n.time}</span>
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Mobile overlay */}
       <div

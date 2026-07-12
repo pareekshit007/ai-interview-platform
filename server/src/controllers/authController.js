@@ -143,7 +143,7 @@ const resetPassword = async (req, res) => {
       icon: "🔐",
       title: "Your password was reset",
       text: "If this wasn't you, contact support immediately.",
-      link: "/profile",
+      link: "/profile?section=security",
     });
 
     res.json({ message: "Password reset — you can now log in with your new password." });
@@ -178,7 +178,7 @@ const changePassword = async (req, res) => {
       icon: "🔐",
       title: "Your password was changed",
       text: "If this wasn't you, reset your password immediately and contact support.",
-      link: "/profile",
+      link: "/profile?section=security",
     });
 
     res.json({ message: "Password updated successfully" });

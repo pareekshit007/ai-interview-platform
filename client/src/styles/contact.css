@@ -271,6 +271,19 @@
   box-shadow: 0 12px 30px rgba(167,139,250,0.25);
 }
 
+.ct-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ct-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin: -0.25rem 0 0;
+}
+
 /* Success state */
 .ct-success {
   text-align: center;

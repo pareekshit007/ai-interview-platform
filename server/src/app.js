@@ -16,6 +16,9 @@ const emailReminderRoutes  = require("./routes/emailReminderRoutes");
 const achievementsRoutes   = require("./routes/achievementsRoutes");   // ← NEW
 const turnRoutes           = require("./routes/turnRoutes");
 const resumeInterviewRoutes = require("./routes/resumeInterviewRoutes");   // ← NEW
+const statsRoutes          = require("./routes/statsRoutes");             // ← NEW: real homepage stats
+const testimonialRoutes    = require("./routes/testimonialRoutes");       // ← NEW: real user testimonials
+const contactRoutes        = require("./routes/contactRoutes");           // ← NEW: real contact form emails
 
 const app = express();
 
@@ -65,6 +68,16 @@ const aiLimiter = rateLimit({
   message: { message: "Too many AI requests — please wait a few minutes before trying again." },
 });
 
+// Contact form limiter — this endpoint sends real email, so it needs its
+// own tight cap independent of the general limiter to prevent spam/abuse.
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,                     // 5 submissions per IP per 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many messages sent — please wait a while before sending another." },
+});
+
 app.get("/", (req, res) => res.json({ status: "API running ✅" }));
 
 app.use("/api/auth",          authLimiter, authRoutes);
@@ -78,6 +91,9 @@ app.use("/api/reminders",     emailReminderRoutes);
 app.use("/api/achievements",  achievementsRoutes);   // ← NEW
 app.use("/api/turn",          turnRoutes);
 app.use("/api/resume-interview", aiLimiter, resumeInterviewRoutes);   // ← NEW
+app.use("/api/stats",         statsRoutes);          // ← NEW
+app.use("/api/testimonials",  testimonialRoutes);    // ← NEW
+app.use("/api/contact",       contactLimiter, contactRoutes);   // ← NEW
 
 app.use(errorHandler);
 
