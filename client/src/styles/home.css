@@ -12,7 +12,7 @@ html { scroll-behavior: smooth; }
   padding: 70px 10%;
   background:
     radial-gradient(circle at top left, rgba(255, 204, 0, 0.18), transparent 45%),
-    linear-gradient(135deg, #0f2027, #203a43, #2c5364),
+    linear-gradient(135deg, #1c3c49, #000000, #314a56),
     url("https://images.unsplash.com/photo-1581093588401-12c3be1f8c91?auto=format&fit=crop&w=1600&q=80");
   background-size: cover;
   background-position: center;
